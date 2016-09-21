@@ -23,8 +23,8 @@ class robotLocation:
         leftDistance = float(leftDistanceInt)
         rightDistance = float(rightDistanceInt)
         if leftDistance == rightDistance:
-            self.x += int(float(rightDistance) * math.cos(self.angle))
-            self.y += int(float(rightDistance) * math.sin(self.angle))
+            self.x += (float(rightDistance) * math.sin(self.angle))
+            self.y += (float(rightDistance) * math.cos(self.angle))
             return
         if leftDistance > rightDistance:
             radius = leftDistance * WHEELDIST / float(leftDistance-rightDistance)
@@ -37,6 +37,19 @@ class robotLocation:
             self.x = xNew
             self.y = yNew
             self.angle += theta
+            return
+        if rightDistance > leftDistance:
+            radius = rightDistance * WHEELDIST / float(rightDistance - leftDistance)
+            theta = float(rightDistance)/radius
+            midRadius = radius - WHEELDIST / 2
+            xTurnCenter = self.x - midRadius * math.cos(self.angle)
+            yTurnCenter = self.y + midRadius * math.sin(self.angle)
+            xNew = xTurnCenter + midRadius * math.cos(self.angle - theta)
+            yNew = yTurnCenter - midRadius * math.sin(self.angle - theta)
+            self.x = xNew
+            self.y = yNew
+            self.angle -= theta
+            return
 class GridSection:
     def __init__(self):
         self.occupied = False
@@ -121,8 +134,8 @@ while Weeee:
     occux = randint(0,249)
     occuy = randint(0,249)
     #map.grid[occux][occuy].setOccupied(True)
-    leftDist = 5 #input("Enter dist of left wheel")
-    rightDist = 3 #input("Enter dist of right wheel")
+    leftDist = randint(0,5)#input("Enter dist of left wheel")
+    rightDist = randint(0,5)#input("Enter dist of right wheel")
     robot.updatePosition(leftDist,rightDist)
     screen.fill(white)
     DrawMap(map)
