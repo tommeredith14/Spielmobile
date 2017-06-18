@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/pi/Documents/spielmobile/ros_ws/install/setup.sh
