@@ -6,10 +6,8 @@
 
 #IncludeRegexTransform: 
 
-/home/pi/Documents/spielmobile/ros_ws/src/spielmobile/ARM_comms.cpp
+/home/pi/Documents/spielmobile/ros_ws/src/spielmobile/localization.cpp
 ros/ros.h
--
-geometry_msgs/Twist.h
 -
 stdlib.h
 -
@@ -17,21 +15,13 @@ iostream
 -
 errno.h
 -
-linux/i2c.h
--
-fstream
--
-unistd.h
--
-fcntl.h
--
-sys/ioctl.h
--
-linux/i2c-dev.h
--
 stdint.h
 -
-cmath
+pthread.h
+-
+sensor_msgs/LaserScan.h
+/home/pi/Documents/spielmobile/ros_ws/src/spielmobile/sensor_msgs/LaserScan.h
+geometry_msgs/Twist.h
 -
 
 /opt/ros/kinetic/include/XmlRpcDecl.h
@@ -715,4 +705,38 @@ ros/forwards.h
 /opt/ros/kinetic/include/ros/ros/forwards.h
 
 /opt/ros/kinetic/include/rosconsole/macros_generated.h
+
+/opt/ros/kinetic/include/sensor_msgs/LaserScan.h
+string
+-
+vector
+-
+map
+-
+ros/types.h
+-
+ros/serialization.h
+-
+ros/builtin_message_traits.h
+-
+ros/message_operations.h
+-
+std_msgs/Header.h
+-
+
+/opt/ros/kinetic/include/std_msgs/Header.h
+string
+-
+vector
+-
+map
+-
+ros/types.h
+-
+ros/serialization.h
+-
+ros/builtin_message_traits.h
+-
+ros/message_operations.h
+-
 

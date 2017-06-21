@@ -439,6 +439,19 @@ std_msgs_generate_messages_nodejs/fast:
 .PHONY : std_msgs_generate_messages_nodejs/fast
 
 #=============================================================================
+# Target rules for targets named Localization
+
+# Build rule for target.
+Localization: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 Localization
+.PHONY : Localization
+
+# fast build rule for target.
+Localization/fast:
+	$(MAKE) -f spielmobile/CMakeFiles/Localization.dir/build.make spielmobile/CMakeFiles/Localization.dir/build
+.PHONY : Localization/fast
+
+#=============================================================================
 # Target rules for targets named rosgraph_msgs_generate_messages_py
 
 # Build rule for target.
@@ -498,6 +511,7 @@ help:
 	@echo "... std_msgs_generate_messages_eus"
 	@echo "... std_msgs_generate_messages_lisp"
 	@echo "... std_msgs_generate_messages_nodejs"
+	@echo "... Localization"
 	@echo "... rosgraph_msgs_generate_messages_py"
 	@echo "... ARM_comms"
 .PHONY : help

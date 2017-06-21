@@ -376,6 +376,21 @@ std_msgs_generate_messages_nodejs/fast:
 .PHONY : std_msgs_generate_messages_nodejs/fast
 
 # Convenience name for target.
+spielmobile/CMakeFiles/Localization.dir/rule:
+	cd /home/pi/Documents/spielmobile/ros_ws/build && $(MAKE) -f CMakeFiles/Makefile2 spielmobile/CMakeFiles/Localization.dir/rule
+.PHONY : spielmobile/CMakeFiles/Localization.dir/rule
+
+# Convenience name for target.
+Localization: spielmobile/CMakeFiles/Localization.dir/rule
+
+.PHONY : Localization
+
+# fast build rule for target.
+Localization/fast:
+	cd /home/pi/Documents/spielmobile/ros_ws/build && $(MAKE) -f spielmobile/CMakeFiles/Localization.dir/build.make spielmobile/CMakeFiles/Localization.dir/build
+.PHONY : Localization/fast
+
+# Convenience name for target.
 spielmobile/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/rule:
 	cd /home/pi/Documents/spielmobile/ros_ws/build && $(MAKE) -f CMakeFiles/Makefile2 spielmobile/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/rule
 .PHONY : spielmobile/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/rule
@@ -432,6 +447,33 @@ ARM_comms.cpp.s:
 	cd /home/pi/Documents/spielmobile/ros_ws/build && $(MAKE) -f spielmobile/CMakeFiles/ARM_comms.dir/build.make spielmobile/CMakeFiles/ARM_comms.dir/ARM_comms.cpp.s
 .PHONY : ARM_comms.cpp.s
 
+localization.o: localization.cpp.o
+
+.PHONY : localization.o
+
+# target to build an object file
+localization.cpp.o:
+	cd /home/pi/Documents/spielmobile/ros_ws/build && $(MAKE) -f spielmobile/CMakeFiles/Localization.dir/build.make spielmobile/CMakeFiles/Localization.dir/localization.cpp.o
+.PHONY : localization.cpp.o
+
+localization.i: localization.cpp.i
+
+.PHONY : localization.i
+
+# target to preprocess a source file
+localization.cpp.i:
+	cd /home/pi/Documents/spielmobile/ros_ws/build && $(MAKE) -f spielmobile/CMakeFiles/Localization.dir/build.make spielmobile/CMakeFiles/Localization.dir/localization.cpp.i
+.PHONY : localization.cpp.i
+
+localization.s: localization.cpp.s
+
+.PHONY : localization.s
+
+# target to generate assembly for a file
+localization.cpp.s:
+	cd /home/pi/Documents/spielmobile/ros_ws/build && $(MAKE) -f spielmobile/CMakeFiles/Localization.dir/build.make spielmobile/CMakeFiles/Localization.dir/localization.cpp.s
+.PHONY : localization.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -439,8 +481,8 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... rebuild_cache"
-	@echo "... rosgraph_msgs_generate_messages_lisp"
 	@echo "... edit_cache"
+	@echo "... rosgraph_msgs_generate_messages_lisp"
 	@echo "... rosgraph_msgs_generate_messages_cpp"
 	@echo "... roscpp_generate_messages_py"
 	@echo "... rosgraph_msgs_generate_messages_nodejs"
@@ -456,6 +498,7 @@ help:
 	@echo "... std_msgs_generate_messages_eus"
 	@echo "... std_msgs_generate_messages_lisp"
 	@echo "... std_msgs_generate_messages_nodejs"
+	@echo "... Localization"
 	@echo "... install"
 	@echo "... rosgraph_msgs_generate_messages_py"
 	@echo "... install/strip"
@@ -464,6 +507,9 @@ help:
 	@echo "... ARM_comms.o"
 	@echo "... ARM_comms.i"
 	@echo "... ARM_comms.s"
+	@echo "... localization.o"
+	@echo "... localization.i"
+	@echo "... localization.s"
 .PHONY : help
 
 

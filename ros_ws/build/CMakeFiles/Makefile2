@@ -245,7 +245,7 @@ gtest/preinstall:
 gtest/CMakeFiles/gtest.dir/all:
 	$(MAKE) -f gtest/CMakeFiles/gtest.dir/build.make gtest/CMakeFiles/gtest.dir/depend
 	$(MAKE) -f gtest/CMakeFiles/gtest.dir/build.make gtest/CMakeFiles/gtest.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/pi/Documents/spielmobile/ros_ws/build/CMakeFiles --progress-num=3,4 "Built target gtest"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/pi/Documents/spielmobile/ros_ws/build/CMakeFiles --progress-num=5,6 "Built target gtest"
 .PHONY : gtest/CMakeFiles/gtest.dir/all
 
 # Build rule for subdir invocation for target.
@@ -277,7 +277,7 @@ clean: gtest/CMakeFiles/gtest.dir/clean
 gtest/CMakeFiles/gtest_main.dir/all: gtest/CMakeFiles/gtest.dir/all
 	$(MAKE) -f gtest/CMakeFiles/gtest_main.dir/build.make gtest/CMakeFiles/gtest_main.dir/depend
 	$(MAKE) -f gtest/CMakeFiles/gtest_main.dir/build.make gtest/CMakeFiles/gtest_main.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/pi/Documents/spielmobile/ros_ws/build/CMakeFiles --progress-num=5,6 "Built target gtest_main"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/pi/Documents/spielmobile/ros_ws/build/CMakeFiles --progress-num=7,8 "Built target gtest_main"
 .PHONY : gtest/CMakeFiles/gtest_main.dir/all
 
 # Build rule for subdir invocation for target.
@@ -306,6 +306,7 @@ clean: gtest/CMakeFiles/gtest_main.dir/clean
 # Directory level rules for directory spielmobile
 
 # Convenience name for "all" pass in the directory.
+spielmobile/all: spielmobile/CMakeFiles/Localization.dir/all
 spielmobile/all: spielmobile/CMakeFiles/ARM_comms.dir/all
 
 .PHONY : spielmobile/all
@@ -325,6 +326,7 @@ spielmobile/clean: spielmobile/CMakeFiles/roscpp_generate_messages_nodejs.dir/cl
 spielmobile/clean: spielmobile/CMakeFiles/std_msgs_generate_messages_eus.dir/clean
 spielmobile/clean: spielmobile/CMakeFiles/std_msgs_generate_messages_lisp.dir/clean
 spielmobile/clean: spielmobile/CMakeFiles/std_msgs_generate_messages_nodejs.dir/clean
+spielmobile/clean: spielmobile/CMakeFiles/Localization.dir/clean
 spielmobile/clean: spielmobile/CMakeFiles/rosgraph_msgs_generate_messages_py.dir/clean
 spielmobile/clean: spielmobile/CMakeFiles/ARM_comms.dir/clean
 
@@ -780,6 +782,43 @@ spielmobile/CMakeFiles/std_msgs_generate_messages_nodejs.dir/clean:
 
 # clean rule for target.
 clean: spielmobile/CMakeFiles/std_msgs_generate_messages_nodejs.dir/clean
+
+.PHONY : clean
+
+#=============================================================================
+# Target rules for target spielmobile/CMakeFiles/Localization.dir
+
+# All Build rule for target.
+spielmobile/CMakeFiles/Localization.dir/all:
+	$(MAKE) -f spielmobile/CMakeFiles/Localization.dir/build.make spielmobile/CMakeFiles/Localization.dir/depend
+	$(MAKE) -f spielmobile/CMakeFiles/Localization.dir/build.make spielmobile/CMakeFiles/Localization.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/pi/Documents/spielmobile/ros_ws/build/CMakeFiles --progress-num=3,4 "Built target Localization"
+.PHONY : spielmobile/CMakeFiles/Localization.dir/all
+
+# Include target in all.
+all: spielmobile/CMakeFiles/Localization.dir/all
+
+.PHONY : all
+
+# Build rule for subdir invocation for target.
+spielmobile/CMakeFiles/Localization.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/pi/Documents/spielmobile/ros_ws/build/CMakeFiles 2
+	$(MAKE) -f CMakeFiles/Makefile2 spielmobile/CMakeFiles/Localization.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/pi/Documents/spielmobile/ros_ws/build/CMakeFiles 0
+.PHONY : spielmobile/CMakeFiles/Localization.dir/rule
+
+# Convenience name for target.
+Localization: spielmobile/CMakeFiles/Localization.dir/rule
+
+.PHONY : Localization
+
+# clean rule for target.
+spielmobile/CMakeFiles/Localization.dir/clean:
+	$(MAKE) -f spielmobile/CMakeFiles/Localization.dir/build.make spielmobile/CMakeFiles/Localization.dir/clean
+.PHONY : spielmobile/CMakeFiles/Localization.dir/clean
+
+# clean rule for target.
+clean: spielmobile/CMakeFiles/Localization.dir/clean
 
 .PHONY : clean
 

@@ -10,10 +10,52 @@
 #include <sys/ioctl.h>
 #include <linux/i2c-dev.h>
 #include <stdint.h>
+#include <cmath>
 
 using namespace std;
 
+#define CONVERSION_FACTOR 1000.0
+#define ZERO_RANGE 0.01
+#define WHEELDIST 0.30
+
+
 int file_i2c;
+
+
+void generate_motion_update(geometry_msgs::Twist & msg, int right, int left) {
+	double right_dist = right / CONVERSION_FACTOR;
+	double left_dist = left / CONVERSION_FACTOR;
+	if (fabs(right_dist - left_dist) < ZERO_RANGE) {
+		msg.angular.z = 0.0;
+		msg.linear.x = right_dist/2 + left_dist/2;
+		msg.linear.z = 0.0;
+		return;
+	} else {
+        if (left_dist > right_dist) {
+			cout << "Right dist " << right_dist << " left dist " <<left_dist << endl;
+            double radius = left_dist *WHEELDIST/ (left_dist-right_dist);
+			cout << "radius " << radius << endl;
+            double theta = left_dist/radius;
+			cout << "theta " << theta << endl;
+            double mid_radius = radius - WHEELDIST / 2;
+			cout << "midrad" << mid_radius << endl;
+			msg.linear.x = 0;
+			msg.linear.z = mid_radius;
+			msg.angular.z = theta;
+            return;
+		}
+        if (right_dist > left_dist) {
+            double radius = right_dist * WHEELDIST / (right_dist - left_dist);
+            double theta = right_dist/radius;
+            double mid_radius = radius - WHEELDIST / 2;
+			msg.linear.x = 0;
+			msg.linear.z = mid_radius;
+			msg.angular.z = - theta;
+            return;
+		}
+	}
+
+}
 
 int main(int argc, char **argv) {
 	//Init ros
@@ -23,9 +65,9 @@ int main(int argc, char **argv) {
 	//Create publisher, set message type
 	ros::Publisher pub = nh.advertise<geometry_msgs::Twist>("spielmobile/motion_updates", 100);
 
+	//Init i2c
 	int fd, result;
 	char *filename = (char*)"/dev/i2c-1";
-	
 	file_i2c = open(filename, O_RDWR);
 	if (file_i2c < 0)
 		cout << "Init failed\n";
@@ -38,12 +80,16 @@ int main(int argc, char **argv) {
 
 		geometry_msgs::Twist msg;
 
-
+		//set up for I2C transmission to slave (not sure if this has to be done each time)
 		if (ioctl(file_i2c, I2C_SLAVE, 11) < 0) {
 			cout << "FAILED ioctl";
 		}
-		/////////
+
+
 		uint8_t to_send[2] = {0,0};
+
+		//Get motor speeds to send
+		//TODO: receive this from other nodes
 
 		int16_t input;
 		cout << "Left wheel: ";
@@ -58,21 +104,28 @@ int main(int argc, char **argv) {
 		to_send[1]= (uint8_t)input;
 
 		cout << "sending: " << (int)to_send[0] << ", " << (int)to_send[1] << endl;
-		uint8_t to_read[6] = {0};
 
+
+		uint8_t to_read[6] = {0};
+		//Send the I2C message containing motor speeds
 		if (write(file_i2c,to_send,2) != 2) {
 			cout << "failed write\n";
 			goto exit;
 		}
-			
+		
+		//Give the micro a chance to process what it just received
+		//TODO: see how short we can push this before the OS lets us down
 		usleep(1000);
 
 		if (read(file_i2c, to_read,6) != 6) {
 			cout << "failed read";
 			goto exit;
 		}
+
+		//debugging
 		for (int i = 0; i < 6; i++)
 			cout << (uint16_t)to_read[i] << endl;
+
 		cin.clear();
 		cin.ignore(99999, '\n');
 
@@ -99,13 +152,14 @@ int main(int argc, char **argv) {
 		cout << "Left wheel went  " << left_dist << endl;
 		cout << "Right wheel went " << right_dist << endl;
 
+	
 
+		//Publish the motion update
+		//TODO: get this processed to a distance and an angle - code for this is in the python tests
+		//msg.linear.x = right_dist;
+		//msg.linear.y = left_dist;
 
-
-
-
-		msg.linear.x = right_dist;
-		msg.linear.y = left_dist;
+		generate_motion_update(msg, right_dist, left_dist);
 
 		pub.publish(msg);
 

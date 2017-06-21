@@ -198,3 +198,5 @@ include_directories(
 # catkin_add_nosetests(test)
 add_executable(ARM_comms ARM_comms.cpp)
 target_link_libraries(ARM_comms ${catkin_LIBRARIES})
+add_executable(Localization localization.cpp)
+target_link_libraries(Localization ${catkin_LIBRARIES})
