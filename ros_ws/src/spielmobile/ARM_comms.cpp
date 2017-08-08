@@ -41,7 +41,7 @@ void generate_motion_update(geometry_msgs::Twist & msg, int right, int left) {
 			cout << "midrad" << mid_radius << endl;
 			msg.linear.x = 0;
 			msg.linear.z = mid_radius;
-			msg.angular.z = theta;
+			msg.angular.z = - theta;
             return;
 		}
         if (right_dist > left_dist) {
@@ -50,7 +50,7 @@ void generate_motion_update(geometry_msgs::Twist & msg, int right, int left) {
             double mid_radius = radius - WHEELDIST / 2;
 			msg.linear.x = 0;
 			msg.linear.z = mid_radius;
-			msg.angular.z = - theta;
+			msg.angular.z = theta;
             return;
 		}
 	}
