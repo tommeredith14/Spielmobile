@@ -47,7 +47,8 @@ class CParticle {
 class CParticleFilter {
 
 public:
-	void ProcessMotionUpdate(sensor_msgs::LaserScan::ConstPtr& update);
+	void ProcessMotionUpdate(geometry_msgs::Twist::ConstPtr& update);
+	void ProcessScanUpdate(sensor_msgs::LaserScan::ConstPtr& s);
 
 
 
