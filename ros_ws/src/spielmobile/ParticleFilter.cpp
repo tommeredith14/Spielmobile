@@ -5,7 +5,9 @@ CParticle::CParticle() {
 
 }
 
-CParticle::CParticle(const CParticle& rhs
+CParticle::CParticle(const CParticle& rhs) {
+
+}
 
 void CParticle::MotionUpdate(const geometry_msgs::Twist::ConstPtr& update) {
 
