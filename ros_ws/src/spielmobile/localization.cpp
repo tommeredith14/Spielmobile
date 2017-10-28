@@ -227,7 +227,10 @@ void ParticleFilter() {
 		condvarScanReady.wait(scanLock,
 			[]{return bScanReady;});
 
+		pScan = lastScan;
+		scanLock.unlock();
 		
+		pParticleFilter->P
 	
 	}
 }
