@@ -15,18 +15,18 @@
 
 class CParticle {
 
-	public:
-		CParticle();
-		CParticle(const CParticle& rhs);
+public:
+	CParticle();
+	CParticle(const CParticle& rhs);
 
 	void MotionUpdate(const geometry_msgs::Twist::ConstPtr& update);
 private:
 	double x_pos;
 	double y_pos;
 	double heading;
-
-
 };
+
+
 
 class CParticleFilter {
 
