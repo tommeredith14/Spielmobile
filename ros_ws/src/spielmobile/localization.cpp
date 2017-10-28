@@ -62,7 +62,7 @@ class CParticle {
 
 };
 
-
+/*
 class Update_Queue {
 	private:
 		class Update_Node {
@@ -133,7 +133,7 @@ class Update_Queue {
 
 };
 
-
+*/
 
 /******************************************************************************/
 /* GLOBAL VARIABLES */
