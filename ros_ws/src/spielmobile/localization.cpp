@@ -1,9 +1,15 @@
 #include <ros/ros.h>
+
+//C++ includes
 #include <stdlib.h>
 #include <iostream>
 #include <errno.h>
 #include <stdint.h>
-#include <pthread.h>
+//#include <pthread.h>
+#include <thread>
+#include <mutex>
+
+//ROS includes
 #include "sensor_msgs/LaserScan.h"
 #include <geometry_msgs/Twist.h>
 // this is a test
@@ -63,57 +69,61 @@ class Update_Queue {
 			public:
 				Update_Node(const geometry_msgs::Twist::ConstPtr& new_update) {
 					update = *new_update;
-					next = NULL;
+					next = nullptr;
 				}
 		};
-		int size;
-		Update_Node *head;
-		Update_Node *tail;
-		pthread_mutex_t queue_mutex = PTHREAD_MUTEX_INITIALIZER;
+		int m_size;
+		Update_Node *m_head;
+		Update_Node *m_tail;
+		//pthread_mutex_t queue_mutex = PTHREAD_MUTEX_INITIALIZER;
+		std::mutex m_queue_mutex;
 
 	public:
-		Update_Queue() {
-			head = NULL;
-			tail = NULL;
-			size = 0;
-			queue_mutex;
+		Update_Queue()
+		  : m_head(nullptr),
+		    m_tail(nullptr),
+		    m_size(0)
+		{
 		}
 
 		int dequeue(geometry_msgs::Twist *update_twist) {
-			pthread_mutex_lock(&queue_mutex);
-			if (size == 0) {pthread_mutex_unlock(&queue_mutex); return -1;}
+			//pthread_mutex_lock(&queue_mutex);
+			std::unique_lock<std::mutex> lock(m_queue_mutex);
+			if (m_size == 0) {
+				return -1;
+			}
 
-			Update_Node *retnode = head;
+			Update_Node *retnode = m_head;
 			*update_twist = retnode->update;
 			if (size == 1) {
-				head = NULL;
-				tail = NULL;
-				size--;
+				m_head = nullptr;
+				m_tail = nullptr;
+				m_size--;
 			} else {
-				head = retnode->next;
-				size--;
+				m_head = retnode->next;
+				m_size--;
 			}
-			pthread_mutex_unlock(&queue_mutex);
 			delete retnode;
+			lock.unlock();
 			return 0;
 		}
 
 		void enqueue(const geometry_msgs::Twist::ConstPtr& update) {
 			Update_Node *new_node = new Update_Node(update);
-			pthread_mutex_lock(&queue_mutex);
-			if (head == NULL) {
-				head = new_node;
-				tail = new_node;
+			std::unique_lock<std::mutex> lock(m_queue_mutex);
+			if (m_head == nullptr) {
+				m_head = new_node;
+				m_tail = new_node;
 			} else {
-				tail->next = new_node;
-				tail = new_node;
+				m_tail->next = new_node;
+				m_tail = new_node;
 				
 			}
-			size++;
-			if (size > MAX_QUEUE_SIZE) {
+			m_size++;
+			if (m_size > MAX_QUEUE_SIZE) {
 				cout << "MAXIMUM QUEUE SIZE REACHED - MOTION UPDATES NOT KEEPING UP\n";
 			}
-			pthread_mutex_unlock(&queue_mutex);
+			lock.unlock();
 		}
 
 };
@@ -179,7 +189,7 @@ void *particle_filter(void *arg) {
 }
 
 
-void initialize_map(char *mapfile) {
+void initialize_map(std::string mapfile) {
 
 }
 
