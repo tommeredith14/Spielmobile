@@ -168,7 +168,9 @@ void scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan) {
 	//Do something
 	std::unique_lock<std::mutex> lock(mutexLastScan);
 	lastScan = scan;
-	
+	bScanReady = true;
+	lock.unlock();
+	condvarScanReady.notify_all();
 }
 
 /* Callback when a motion update has been received from the ARM
