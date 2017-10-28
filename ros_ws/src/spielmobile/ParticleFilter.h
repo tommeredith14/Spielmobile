@@ -56,12 +56,14 @@ class CParticleFilter {
 public:
 	void ProcessMotionUpdate(geometry_msgs::Twist::ConstPtr& update);
 	void ProcessScanUpdate(sensor_msgs::LaserScan::ConstPtr& scan);
-
+	void SetMap(CMap* map);
+	
 
 
 private:
-	std::vector<CParticle> particleList;
-	std::mutex mutexParticles
+	std::vector<CParticle> m_particleList;
+	std::mutex m_mutexParticles
+	CMap* pMap;
 
 
 };
