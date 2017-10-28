@@ -23,7 +23,7 @@ using namespace std;
 #define MAX_QUEUE_SIZE 20
 
 sensor_msgs::LaserScan scan360;
-
+/*
 class CParticle {
 	private:
 		double x_pos;
@@ -61,7 +61,7 @@ class CParticle {
 
 
 };
-
+*/
 /*
 class Update_Queue {
 	private:
@@ -150,8 +150,9 @@ bool bScanReady = false;
 std::mutex mutexLastScan;
 sensor_msgs::LaserScan::ConstPtr lastScan;
 
-std::mutex mutexParticles;
-std::vector<CParticle> ParticleList;
+//std::mutex mutexParticles;
+//std::vector<CParticle> ParticleList;
+CParticleFilter* ParticleFilter;
 
 /******************************************************************************/
 /* MAIN FUNCTIONS */
