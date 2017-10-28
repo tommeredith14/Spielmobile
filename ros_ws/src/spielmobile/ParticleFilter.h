@@ -63,7 +63,7 @@ public:
 
 
 private:
-	std::vector<CParticle>* m_particleList;
+	std::vector<CParticle>* m_pParticleList;
 	std::mutex m_mutexParticles
 	CMap* pMap;
 
