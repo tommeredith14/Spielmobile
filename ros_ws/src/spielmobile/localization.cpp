@@ -230,7 +230,7 @@ void ParticleFilter() {
 		pScan = lastScan;
 		scanLock.unlock();
 		
-		pParticleFilter->P
+		pParticleFilter->ProcessScanUpdate(pScan);
 	
 	}
 }
