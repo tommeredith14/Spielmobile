@@ -210,7 +210,7 @@ void MotionUpdater() {
 		update.pop();
 		updateLock.unlock();
 		
-		pParticleFilter->ProcessMotionUpd
+		pParticleFilter->ProcessMotionUpdate(update);
 	}
 
 }
