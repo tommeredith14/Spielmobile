@@ -145,7 +145,7 @@ std::condition_variable condvarMotionUpdate;
 std::mutex mutexMotionQueue;
 std::queue<geometry_msgs::Twist::ConstPtr> motionUpdateQueue;
 
-std::condition_variable condvarLastScan;
+std::condition_variable condvarScanReady;
 bool bScanReady = false;
 std::mutex mutexLastScan;
 sensor_msgs::LaserScan::ConstPtr lastScan;
