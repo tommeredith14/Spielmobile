@@ -166,7 +166,9 @@ std::vector<CParticle> ParticleList;
 */
 void scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan) {
 	//Do something
-	std::unique_lock<std::mutex> mutexLastScan);
+	std::unique_lock<std::mutex> lock(mutexLastScan);
+	lastScan = scan;
+	
 }
 
 /* Callback when a motion update has been received from the ARM
