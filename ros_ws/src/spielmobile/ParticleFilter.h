@@ -14,7 +14,7 @@
 
 
 class CParticle {
-
+	friend class CParticleFilter;
 public:
 	CParticle();
 	CParticle(const CParticle& rhs);
