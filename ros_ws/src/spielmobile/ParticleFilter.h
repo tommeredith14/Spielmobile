@@ -54,7 +54,7 @@ class CParticle {
 class CParticleFilter {
 
 public:
-	CParticleFilter(int numParticles = );
+	CParticleFilter(int numParticles = 200);
 	~CParticleFilter();
 	void ProcessMotionUpdate(geometry_msgs::Twist::ConstPtr& update);
 	void ProcessScanUpdate(sensor_msgs::LaserScan::ConstPtr& scan);
@@ -63,7 +63,7 @@ public:
 
 
 private:
-	std::vector<CParticle> m_particleList;
+	std::vector<CParticle>* m_particleList;
 	std::mutex m_mutexParticles
 	CMap* pMap;
 
