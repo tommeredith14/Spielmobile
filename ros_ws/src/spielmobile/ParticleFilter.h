@@ -1,6 +1,10 @@
 #ifndef PARTICLEFILTER_H
 #define PARTICLEFILTER_H
 
+//ROS includes
+#include "sensor_msgs/LaserScan.h"
+#include <geometry_msgs/Twist.h>
+
 
 class CParticle {
 	private:
@@ -43,7 +47,8 @@ class CParticle {
 class CParticleFilter {
 
 public:
-	
+	void ProcessMotionUpdate(sensor_msgs::LaserScan::ConstPtr& update);
+
 
 
 private:
