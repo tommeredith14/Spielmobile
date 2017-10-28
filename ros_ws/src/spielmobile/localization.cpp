@@ -16,7 +16,9 @@
 #include "sensor_msgs/LaserScan.h"
 #include <geometry_msgs/Twist.h>
 
+//Other includes
 #include "map.h"
+#include "ParticleFilter.h"
 
 using namespace std;
 
@@ -152,7 +154,7 @@ sensor_msgs::LaserScan::ConstPtr lastScan;
 
 //std::mutex mutexParticles;
 //std::vector<CParticle> ParticleList;
-CParticleFilter* ParticleFilter;
+CParticleFilter* pParticleFilter;
 
 /******************************************************************************/
 /* MAIN FUNCTIONS */
@@ -208,6 +210,7 @@ void MotionUpdater() {
 		update.pop();
 		updateLock.unlock();
 		
+		pParticleFilter->ProcessMotionUpd
 	}
 
 }
