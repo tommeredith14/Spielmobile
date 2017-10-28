@@ -54,9 +54,11 @@ class CParticle {
 class CParticleFilter {
 
 public:
+	CParticleFilter();
+	~CParticleFilter();
 	void ProcessMotionUpdate(geometry_msgs::Twist::ConstPtr& update);
 	void ProcessScanUpdate(sensor_msgs::LaserScan::ConstPtr& scan);
-	void SetMap(CMap* map);
+	void SetMap(CMap* pmap);
 	
 
 
