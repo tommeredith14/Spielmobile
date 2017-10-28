@@ -246,6 +246,7 @@ int main(int argc, char **argv) {
 	ros::NodeHandle nh;
 
 	pMap = new CMap(argv[1]);
+	pParticleFilter = new CParticleFilter();
 
 	ros::Subscriber sub = nh.subscribe<sensor_msgs::LaserScan>("/scan", 1,scanCallback);
 	ros::Subscriber sub2 = nh.subscribe<geometry_msgs::Twist>("/scan", 20,motionCallback);
