@@ -228,9 +228,10 @@ void ParticleFilter() {
 	{
 		sensor_msgs::LaserScan::ConstPtr pScan;
 		std::unique_lock<std::mutex> scanLock(mutexLastScan);
-		condvarMotio.wait(scanLock,
-			[]{return (motionUpdateQueue.size > 0);});
+		condvarScanReady.wait(scanLock,
+			[]{return bScanReady;});
 
+		
 	
 	}
 }
