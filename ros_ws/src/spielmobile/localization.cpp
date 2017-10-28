@@ -207,14 +207,6 @@ void MotionUpdater() {
 		update.pop();
 		updateLock.unlock();
 		
-		//Update the particles
-		std::unique_lock<std::mutex> partlicleLock(mutexParticles);
-		
-		for (auto &particle : particleList)
-		{
-			particle.MotionUpdate(update);
-		}
-		particleLock.unlock();
 	}
 
 }
