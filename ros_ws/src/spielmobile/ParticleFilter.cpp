@@ -10,6 +10,16 @@ CParticleFilter::~CParticleFilter() {
 }
 
 
-void CParticleFilter::ProcessMotionUpdate(geometry_msgs::Twist::ConstPtr& update);
-void CParticleFilter::ProcessScanUpdate(sensor_msgs::LaserScan::ConstPtr& scan);
-void SetMap(CMap* pmap);
+void CParticleFilter::ProcessMotionUpdate(geometry_msgs::Twist::ConstPtr& update) {
+
+}
+
+
+void CParticleFilter::ProcessScanUpdate(sensor_msgs::LaserScan::ConstPtr& scan) {
+
+}
+
+
+void CParticleFilter::SetMap(CMap* pmap) {
+
+}
