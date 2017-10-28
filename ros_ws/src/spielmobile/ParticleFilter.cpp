@@ -1,8 +1,13 @@
 #include "ParticleFilter.h"
 
 
+CParticle::CParticle() {
 
-void MotionUpdate(const geometry_msgs::Twist::ConstPtr& update) {
+}
+
+CParticle::CParticle(const CParticle& rhs
+
+void CParticle::MotionUpdate(const geometry_msgs::Twist::ConstPtr& update) {
 
 	if (update->linear.x != 0)
 	{
