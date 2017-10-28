@@ -10,7 +10,7 @@
 #include <geometry_msgs/Twist.h>
 
 //Other includes
-#include "ma
+#include "map.h"
 
 
 class CParticle {
@@ -60,7 +60,8 @@ public:
 
 
 private:
-
+	std::vector<CParticle> particleList;
+	std::mutex mutexParticles
 
 
 };
