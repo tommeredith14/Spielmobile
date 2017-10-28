@@ -6,7 +6,7 @@
 #include <pthread.h>
 #include "sensor_msgs/LaserScan.h"
 #include <geometry_msgs/Twist.h>
-
+// this is a test
 using namespace std;
 
 #define MAX_QUEUE_SIZE 20
