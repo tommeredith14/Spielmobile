@@ -226,7 +226,11 @@ void ParticleFilter() {
 	
 	while (ros::ok())
 	{
-	
+		senegeometry_msgs::Twist::ConstPtr update;
+		std::unique_lock<std::mutex> updateLock(mutexMotionUpdate);
+		condvarMotionUpdate.wait(updateLock,
+			[]{return (motionUpdateQueue.size > 0);});
+
 	
 	}
 }
