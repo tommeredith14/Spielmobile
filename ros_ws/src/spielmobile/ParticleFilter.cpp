@@ -15,7 +15,7 @@ const double copyHeadingStdDev = 1.0;
 /* RANDOM GENERATORS */
 /***************************/
 
-std::default_random_engine noisegenerator;
+std::default_random_engine noise_generator;
 std::normal_distribution<double> copyPosNoise(0.0, copyPosStdDev);
 std::normal_distribution<double> copyHeadingNoise(0.0, copyHeadingStdDev);
 std::normal_distribution<double> motionPosNoise(0.0, motionPosStdDev);
@@ -44,8 +44,8 @@ CParticle::CParticle(const CParticle& rhs, bool randomize) {
 }
 
 void CParticle::MotionUpdate(const geometry_msgs::Twist::ConstPtr& update) {
-	double forward = update->linear.x;
-	double turnRad = update->linear.z;
+	double forward = update->linear.x + motionPosNoise(noise_generator);
+	double turnRad = update->linear.z + motionPosNoise(;
 	double rotation = update->angular.z
 	
 	if (update->linear.x != 0)
