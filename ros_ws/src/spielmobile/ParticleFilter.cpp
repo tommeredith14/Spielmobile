@@ -8,7 +8,7 @@
 /* PARTICLE */
 /*****************************************************************/
 CParticle::CParticle() {
-	m_xpos = rand()
+	m_xpos = ((double)rand())/RAND_MAX*x
 }
 
 CParticle::CParticle(const CParticle& rhs, bool randomize) {
