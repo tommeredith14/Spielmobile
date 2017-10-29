@@ -23,20 +23,20 @@ void CParticle::MotionUpdate(const geometry_msgs::Twist::ConstPtr& update) {
 	if (update->linear.x != 0)
 	{
 		(*this).m_xpos += forward * cos(m_heading);
-		(*this).m_ypos += forward * sin(heading);
+		(*this).m_ypos += forward * sin(m_heading);
 	}
 	else if (rotation > 0) {
-		double x_centre = (*this).m_xpos - turnRad * sin((*this).heading);
-		double y_centre = (*this).m_ypos + turnRad * cos((*this).heading);
-		(*this).m_xpos = x_centre + turnRad * sin((*this).heading + rotation);
-		(*this).m_ypos = y_centre - turnRad * cos((*this).heading + rotation);
-		(*this).heading += rotation;
+		double x_centre = (*this).m_xpos - turnRad * sin((*this).m_heading);
+		double y_centre = (*this).m_ypos + turnRad * cos((*this).m_heading);
+		(*this).m_xpos = x_centre + turnRad * sin((*this).m_heading + rotation);
+		(*this).m_ypos = y_centre - turnRad * cos((*this).m_heading + rotation);
+		(*this).m_heading += rotation;
 	} else {
-		double x_centre = (*this).m_xpos + turnRad * sin((*this).heading);
-		double y_centre = (*this).m_ypos - turnRad * cos((*this).heading);
-		(*this).m_xpos = x_centre - turnRad * sin((*this).heading - rotation);
-		(*this).m_ypos = y_centre + turnRad * cos((*this).heading - rotation);
-		(*this).heading -= rotation;
+		double x_centre = (*this).m_xpos + turnRad * sin((*this).m_heading);
+		double y_centre = (*this).m_ypos - turnRad * cos((*this).m_heading);
+		(*this).m_xpos = x_centre - turnRad * sin((*this).m_heading - rotation);
+		(*this).m_ypos = y_centre + turnRad * cos((*this).m_heading - rotation);
+		.m_heading -= rotation;
 	}
 
 
