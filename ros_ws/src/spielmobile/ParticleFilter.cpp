@@ -2,7 +2,7 @@
 
 /*****************************************************************/
 /* PARTICLE */
-/*****************************************************************
+/*****************************************************************/
 CParticle::CParticle() {
 
 }
@@ -36,9 +36,13 @@ void CParticle::MotionUpdate(const geometry_msgs::Twist::ConstPtr& update) {
 }
 
 
+/*****************************************************************/
+/* PARTICLE FILTER */
+/*****************************************************************/
+
 
 CParticleFilter::CParticleFilter(int numParticles) {
-
+	m_pParticleList = new std::vector<CParticle>
 
 }
 
