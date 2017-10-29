@@ -103,6 +103,9 @@ void CParticleFilter::ProcessMotionUpdate(geometry_msgs::Twist::ConstPtr& update
 
 
 void CParticleFilter::ProcessScanUpdate(sensor_msgs::LaserScan::ConstPtr& scan) {
+	//calculate probability of each particle
+	
+	
 
 }
 
