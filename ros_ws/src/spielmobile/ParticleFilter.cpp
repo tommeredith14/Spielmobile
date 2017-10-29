@@ -46,6 +46,7 @@ void CParticle::MotionUpdate(const geometry_msgs::Twist::ConstPtr& update) {
 
 
 CParticleFilter::CParticleFilter(int numParticles) {
+	srand(time(nullptr));
 	m_pParticleList = new std::vector<CParticle>(numParticles);
 
 }
