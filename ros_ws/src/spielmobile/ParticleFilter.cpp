@@ -42,12 +42,13 @@ void CParticle::MotionUpdate(const geometry_msgs::Twist::ConstPtr& update) {
 
 
 CParticleFilter::CParticleFilter(int numParticles) {
-	m_pParticleList = new std::vector<CParticle>
+	m_pParticleList = new std::vector<CParticle>(numParticles);
 
 }
 
 CParticleFilter::~CParticleFilter() {
-
+	delete m_pParticleList;l
+	m_pParticleList = nullptr;
 }
 
 
@@ -69,5 +70,5 @@ void CParticleFilter::ProcessScanUpdate(sensor_msgs::LaserScan::ConstPtr& scan) 
 
 
 void CParticleFilter::SetMap(CMap* pmap) {
-
+	m_pMap = pMap;
 }
