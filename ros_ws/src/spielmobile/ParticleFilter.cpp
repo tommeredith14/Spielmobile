@@ -17,7 +17,8 @@ CParticle::CParticle(const CParticle& rhs) {
 
 void CParticle::MotionUpdate(const geometry_msgs::Twist::ConstPtr& update) {
 	double forward = update->linear.x;
-	double tru
+	double turnRad = update->linear.z;
+	double rotation = update->angular.z
 	
 	if (update->linear.x != 0)
 	{
