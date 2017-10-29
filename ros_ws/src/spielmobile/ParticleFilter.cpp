@@ -25,7 +25,7 @@ void CParticle::MotionUpdate(const geometry_msgs::Twist::ConstPtr& update) {
 		(*this).m_xpos += forward * cos(heading);
 		(*this).m_ypos += forward * sin(heading);
 	}
-	else if (update->angular.z > 0) {
+	else if (rotation > 0) {
 		double x_centre = (*this).m_xpos - turnRad * sin((*this).heading);
 		double y_centre = (*this).m_ypos + turnRad * cos((*this).heading);
 		(*this).x_pos = x_centre + turnRad * sin((*this).heading + update->angular.z);
@@ -35,7 +35,7 @@ void CParticle::MotionUpdate(const geometry_msgs::Twist::ConstPtr& update) {
 		double x_centre = (*this).x_pos + turnRad * sin((*this).heading);
 		double y_centre = (*this).y_pos - turnRad * cos((*this).heading);
 		(*this).x_pos = x_centre - turnRad * sin((*this).heading - update->angular.z);
-		(*this).y_pos = y_centre + date->linear.z * cos((*this).heading - update->angular.z);
+		(*this).y_pos = y_centre + turnRad * cos((*this).heading - update->angular.z);
 		(*this).heading -= update->angular.z;
 	}
 
