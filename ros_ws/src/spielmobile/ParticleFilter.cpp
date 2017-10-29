@@ -22,8 +22,8 @@ void CParticle::MotionUpdate(const geometry_msgs::Twist::ConstPtr& update) {
 	
 	if (update->linear.x != 0)
 	{
-		(*this).x_pos += update->linear.x * cos(heading);
-		(*this).y_pos += update->linear.x * sin(heading);
+		(*this).m_xpos += forward * cos(heading);
+		(*this).m_ypos += forward * sin(heading);
 	}
 	else if (update->angular.z > 0) {
 		double x_centre = (*this).x_pos - update->linear.z * sin((*this).heading);
