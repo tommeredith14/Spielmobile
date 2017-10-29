@@ -16,7 +16,9 @@ CParticle::CParticle(const CParticle& rhs) {
 }
 
 void CParticle::MotionUpdate(const geometry_msgs::Twist::ConstPtr& update) {
-
+	double forward = update->linear.x;
+	double tru
+	
 	if (update->linear.x != 0)
 	{
 		(*this).x_pos += update->linear.x * cos(heading);
