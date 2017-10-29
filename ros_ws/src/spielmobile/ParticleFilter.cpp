@@ -106,9 +106,10 @@ void CParticleFilter::ProcessMotionUpdate(geometry_msgs::Twist::ConstPtr& update
 
 
 void CParticleFilter::ProcessScanUpdate(sensor_msgs::LaserScan::ConstPtr& scan) {
-	std::vector<double> probabilityList(m_pParticleList.size
+	std::vector<double> probabilityList(m_pParticleList.size());
 	//calculate probability of each particle
-	
+	int particleNum = 0;
+	for (auto particle: (*m_pParticleList);
 	
 	//normalize probabilities
 	
