@@ -20,7 +20,7 @@ public:
 	CParticle(const CParticle& rhs);
 
 	void MotionUpdate(const geometry_msgs::Twist::ConstPtr& update);
-	double CParticle::ComputeParticleProbability(sensor_msgs::LaserScan::ConstPtr& scan, CMap pMap);
+	double ComputeParticleProbability(sensor_msgs::LaserScan::ConstPtr& scan, CMap pMap);
 private:
 	double m_xpos;
 	double m_ypos;
