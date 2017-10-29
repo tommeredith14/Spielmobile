@@ -8,7 +8,7 @@
 /* PARTICLE */
 /*****************************************************************/
 CParticle::CParticle() {
-
+	
 }
 
 CParticle::CParticle(const CParticle& rhs, bool randomize) {
@@ -16,7 +16,8 @@ CParticle::CParticle(const CParticle& rhs, bool randomize) {
 	
 	} else {
 		m_heading = rhs.m_heading
-		m_xpos
+		m_xpos = rhs.m_xpos;
+		m_ypos = rhs.m_ypos;
 	}
 	
 }
