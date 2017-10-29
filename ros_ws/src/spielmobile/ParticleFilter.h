@@ -21,9 +21,9 @@ public:
 
 	void MotionUpdate(const geometry_msgs::Twist::ConstPtr& update);
 private:
-	double x_pos;
-	double y_pos;
-	double heading;
+	double m_xpos;
+	double m_ypos;
+	double m_heading;
 };
 
 
