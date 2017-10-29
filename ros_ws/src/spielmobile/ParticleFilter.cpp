@@ -97,7 +97,7 @@ void CParticleFilter::ProcessMotionUpdate(geometry_msgs::Twist::ConstPtr& update
 		//Update the particles
 		std::unique_lock<std::mutex> partlicleLock(mutexParticles);
 		
-		for (auto &particle : particleList)
+		for (auto &particle : (*m_pParticleList))
 		{
 			particle.MotionUpdate(update);
 		}
@@ -110,7 +110,8 @@ void CParticleFilter::ProcessScanUpdate(sensor_msgs::LaserScan::ConstPtr& scan) 
 	//calculate probability of each particle
 	int particleNum = 0;
 	for (auto &particle: (*m_pParticleList)) {
-		probabilityList[particleNum] = particle.
+		probabilityList[particleNum] = particle.ComputeParticleProbability(scan, m_pMap);
+		part
 	}
 	
 	//normalize probabilities
