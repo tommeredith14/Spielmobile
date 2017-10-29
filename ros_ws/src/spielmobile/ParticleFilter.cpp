@@ -106,6 +106,7 @@ void CParticleFilter::ProcessMotionUpdate(geometry_msgs::Twist::ConstPtr& update
 
 
 void CParticleFilter::ProcessScanUpdate(sensor_msgs::LaserScan::ConstPtr& scan) {
+	std::vector<double> probabilityList(m_pParticleList.size
 	//calculate probability of each particle
 	
 	
