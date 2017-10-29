@@ -13,7 +13,8 @@ const double motionStdDev = 1.0;
 /* RANDOM GENERATORS */
 /***************************/
 
-std::default_random_engine generator
+std::default_random_engine generator;
+std::
 
 /*****************************************************************/
 /* PARTICLE */
