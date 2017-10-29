@@ -111,7 +111,7 @@ void CParticleFilter::ProcessScanUpdate(sensor_msgs::LaserScan::ConstPtr& scan) 
 	int particleNum = 0;
 	for (auto &particle: (*m_pParticleList)) {
 		probabilityList[particleNum] = particle.ComputeParticleProbability(scan, m_pMap);
-		part
+		particleNum++;
 	}
 	
 	//normalize probabilities
