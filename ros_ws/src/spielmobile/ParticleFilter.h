@@ -41,7 +41,8 @@ public:
 
 
 private:
-	void ResampleParticles
+	void ResampleParticles();
+	void 
 
 	std::vector<CParticle>* m_pParticleList;
 	std::mutex m_mutexParticles
