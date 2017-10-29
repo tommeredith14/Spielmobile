@@ -12,7 +12,7 @@ CParticle::CParticle() {
 }
 
 CParticle::CParticle(const CParticle& rhs) {
-
+	
 }
 
 void CParticle::MotionUpdate(const geometry_msgs::Twist::ConstPtr& update) {
@@ -26,8 +26,8 @@ void CParticle::MotionUpdate(const geometry_msgs::Twist::ConstPtr& update) {
 		m_ypos += forward * sin(m_heading);
 	}
 	else if (rotation > 0) {
-		double x_centre = m_xpos - turnRad * sin((*this).m_heading);
-		double y_centre = m_ypos + turnRad * cos((*this).m_heading);
+		double x_centre = m_xpos - turnRad * sin(m_heading);
+		double y_centre = m_ypos + turnRad * cos(m_heading);
 		m_xpos = x_centre + turnRad * sin(m_heading + rotation);
 		m_ypos = y_centre - turnRad * cos(m_heading + rotation);
 		m_heading += rotation;
