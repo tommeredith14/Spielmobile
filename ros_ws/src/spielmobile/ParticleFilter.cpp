@@ -14,7 +14,7 @@ const double motionStdDev = 1.0;
 /***************************/
 
 std::default_random_engine generator;
-std::
+std::normal_distribution<double> copyPosGenerator(0.0, copyPo
 
 /*****************************************************************/
 /* PARTICLE */
