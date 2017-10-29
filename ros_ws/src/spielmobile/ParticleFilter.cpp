@@ -109,7 +109,9 @@ void CParticleFilter::ProcessScanUpdate(sensor_msgs::LaserScan::ConstPtr& scan) 
 	std::vector<double> probabilityList(m_pParticleList.size());
 	//calculate probability of each particle
 	int particleNum = 0;
-	for (auto particle: (*m_pParticleList);
+	for (auto &particle: (*m_pParticleList)) {
+		probabilityList[particleNum] = particle.
+	}
 	
 	//normalize probabilities
 	
