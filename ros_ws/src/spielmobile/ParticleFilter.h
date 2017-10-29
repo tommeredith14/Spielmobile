@@ -42,7 +42,7 @@ public:
 
 private:
 	void ResampleParticles(std::vector<double>& vProbabilities);
-	void NormalizeProbabilities(std::vector
+	void NormalizeProbabilities(std::vector<double>& vProbabilities);
 
 	std::vector<CParticle>* m_pParticleList;
 	std::mutex m_mutexParticles
