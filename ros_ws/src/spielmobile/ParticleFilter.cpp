@@ -72,7 +72,7 @@ void CParticle::MotionUpdate(const geometry_msgs::Twist::ConstPtr& update) {
 
 }
 
-void CParticle::Compute
+void CParticle::ComputeParticleProbability(sensor_msgs::LaserScan::ConstPtr& scan, CMap pMap)
 
 /*****************************************************************/
 /* PARTICLE FILTER */
