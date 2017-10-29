@@ -4,6 +4,7 @@
 #include <stdlib>
 #include <time>
 #include <cmath>
+#include <random>
 
 const double copyStdDev = 1.0;
 const double motionStdDev = 1.0;
