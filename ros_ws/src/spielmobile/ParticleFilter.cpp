@@ -95,7 +95,7 @@ CParticleFilter::~CParticleFilter() {
 
 void CParticleFilter::ProcessMotionUpdate(geometry_msgs::Twist::ConstPtr& update) {
 		//Update the particles
-		std::unique_lock<std::mutex> partlicleLock(mutexParticles);
+		std::unique_lock<std::mutex> partlicleLock(m_mutexParticles);
 		
 		for (auto &particle : (*m_pParticleList))
 		{
