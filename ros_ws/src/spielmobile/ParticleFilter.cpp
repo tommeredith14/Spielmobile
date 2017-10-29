@@ -125,3 +125,11 @@ void CParticleFilter::ProcessScanUpdate(sensor_msgs::LaserScan::ConstPtr& scan) 
 void CParticleFilter::SetMap(CMap* pMap) {
 	m_pMap = pMap;
 }
+
+void CParticleFilter::ResampleParticles(std::vector<double>& vProbabilities) {
+
+}
+
+void CParticleFilter::NormalizeProbabilities(std::vector<double>& vProbabilities) {
+
+}
