@@ -72,6 +72,7 @@ void CParticle::MotionUpdate(const geometry_msgs::Twist::ConstPtr& update) {
 
 }
 
+void CParticle::Compute
 
 /*****************************************************************/
 /* PARTICLE FILTER */
@@ -108,7 +109,7 @@ void CParticleFilter::ProcessScanUpdate(sensor_msgs::LaserScan::ConstPtr& scan) 
 	
 	//normalize probabilities
 	
-	
+	//re-sample particles
 	
 
 }
