@@ -8,7 +8,9 @@
 /* PARTICLE */
 /*****************************************************************/
 CParticle::CParticle() {
-	m_xpos = ((double)rand())/RAND_MAX*x
+	m_xpos = ((double)rand())/RAND_MAX*xMax;
+	m_ypos = ((double)rand())/RAND_MAX*yMax;
+	m_heading = ((double)rand())/RAND_M
 }
 
 CParticle::CParticle(const CParticle& rhs, bool randomize) {
