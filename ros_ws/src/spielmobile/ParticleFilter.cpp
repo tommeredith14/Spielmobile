@@ -106,10 +106,14 @@ void CParticleFilter::ProcessScanUpdate(sensor_msgs::LaserScan::ConstPtr& scan) 
 	//calculate probability of each particle
 	
 	
+	//normalize probabilities
+	
+	
+	
 
 }
 
 
-void CParticleFilter::SetMap(CMap* pmap) {
+void CParticleFilter::SetMap(CMap* pMap) {
 	m_pMap = pMap;
 }
