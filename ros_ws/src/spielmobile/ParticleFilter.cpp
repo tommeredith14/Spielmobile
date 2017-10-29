@@ -5,7 +5,8 @@
 #include <time>
 #include <cmath>
 
-const int 
+const double copyStdDev = 1.0;
+const double motionStdDev = 1.0;
 
 /*****************************************************************/
 /* PARTICLE */
