@@ -6,18 +6,21 @@
 #include <cmath>
 #include <random>
 
-const double copyStdDev = 1.0;
-const double motionStdDev = 1.0;
+const double copyPosStdDev = 1.0;
+const double copyHeadingStdDev = 1.0;
+const double motionPosStdDev = 1.0;
+const double copyHeadingStdDev = 1.0;
 
 /****************************/
 /* RANDOM GENERATORS */
 /***************************/
 
-std::default_random_engine generator;
+std::default_random_engine noisegenerator;
 std::normal_distribution<double> copyPosNoise(0.0, copyPosStdDev);
 std::normal_distribution<double> copyHeadingNoise(0.0, copyHeadingStdDev);
 std::normal_distribution<double> motionPosNoise(0.0, motionPosStdDev);
-std::normal_distribution<double> motionHeadingNoise(0.0, motionHeading
+std::normal_distribution<double> motionHeadingNoise(0.0, motionHeadingStdDev);
+
 
 
 /****************************************************************/
