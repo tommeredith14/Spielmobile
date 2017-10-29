@@ -34,9 +34,11 @@ CParticle::CParticle() {
 
 CParticle::CParticle(const CParticle& rhs, bool randomize) {
 	if (randomize) {
-		
+		m_heading = rhs.m_heading + copyPosNoise(noise_generator);
+		m_xpos = rhs.m_xpos + copyPosNoise(noise_generator);
+		m_ypos = rhs.m_ypos + copyHeadingNoise(;
 	} else {
-		m_heading = rhs.m_heading
+		m_heading = rhs.m_heading;
 		m_xpos = rhs.m_xpos;
 		m_ypos = rhs.m_ypos;
 	}
