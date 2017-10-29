@@ -34,7 +34,7 @@ CParticle::CParticle() {
 
 CParticle::CParticle(const CParticle& rhs, bool randomize) {
 	if (randomize) {
-	
+		
 	} else {
 		m_heading = rhs.m_heading
 		m_xpos = rhs.m_xpos;
@@ -45,8 +45,8 @@ CParticle::CParticle(const CParticle& rhs, bool randomize) {
 
 void CParticle::MotionUpdate(const geometry_msgs::Twist::ConstPtr& update) {
 	double forward = update->linear.x + motionPosNoise(noise_generator);
-	double turnRad = update->linear.z + motionPosNoise(;
-	double rotation = update->angular.z
+	double turnRad = update->linear.z + motionPosNoise(noise_generator);
+	double rotation = update->angular.z + motionHeadingNoise(noise_generator);
 	
 	if (update->linear.x != 0)
 	{
