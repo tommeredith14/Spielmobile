@@ -11,7 +11,13 @@ CParticle::CParticle() {
 
 }
 
-CParticle::CParticle(const CParticle& rhs) {
+CParticle::CParticle(const CParticle& rhs, bool randomize) {
+	if (randomize) {
+	
+	} else {
+		m_heading = rhs.m_heading
+		m_xpos
+	}
 	
 }
 
