@@ -10,6 +10,9 @@ add_definitions(-std=c++11)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
+  pcl_ros
+  pcl_conversions
+  tf
 )
 
 ## System dependencies are found with CMake's conventions
@@ -198,5 +201,14 @@ include_directories(
 # catkin_add_nosetests(test)
 add_executable(ARM_comms ARM_comms.cpp)
 target_link_libraries(ARM_comms ${catkin_LIBRARIES})
-add_executable(Localization localization.cpp)
+add_executable(Localization localization.cpp ParticleFilter.cpp map.cpp)
 target_link_libraries(Localization ${catkin_LIBRARIES})
+
+#add_executable(pctest pointcloudTester.cpp PointCloud.cpp map.cpp)
+#target_link_libraries(pctest ${catkin_LIBRARIES})
+
+add_executable(spielmobile_simulator SpielmobileSimulator.cpp map.cpp)
+target_link_libraries(spielmobile_simulator ${catkin_LIBRARIES})
+
+add_executable(spielmobile_visualizer SpielmobileVisualizer.cpp)
+target_link_libraries(spielmobile_visualizer ${catkin_LIBRARIES})
