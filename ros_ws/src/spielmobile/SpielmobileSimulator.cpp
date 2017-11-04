@@ -64,7 +64,12 @@ public:
 	void ScannerThread() {
 		ros::Rate loop_rate(1);
 		while (ros::ok()) {
-
+			sensor_msgs::LaserScan scan;
+			std::unique_lock<std::mutex> lock(m_locationMutex);
+			m_pMap->SimulateScanFromPosition(scan, m_robotLocation);
+			lock.unlock();
+			
+			m_scanPub.publish(scan);			
 
 			loop_rate.sleep();
 		}
@@ -86,7 +91,7 @@ private:
         double forward = update->linear.x;// + motionPosNoise(noise_generator);
 	    double turnRad = update->linear.z;// + motionPosNoise(noise_generator);
 	    double rotation = update->angular.z;// + motionHeadingNoise(noise_generator);
-	    
+	    std::unique_lock<std::mutex> lock(m_locationMutex);
 	    if (update->linear.x != 0)
 	    {
 	        m_robotLocation.linear.x += forward * cos(m_robotLocation.angular.z);

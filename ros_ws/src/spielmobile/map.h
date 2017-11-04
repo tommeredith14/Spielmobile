@@ -15,6 +15,7 @@
 typedef pcl::PointXYZ Point;
 typedef pcl::PointCloud<Point> PointCloud;
 
+#define NEAR_DIST_THRESH 0.05
 
 class CMap {
 public:
@@ -24,14 +25,19 @@ public:
 
     void SimulateScanFromPosition(
     				sensor_msgs::LaserScan& scan,
-    				geometry_msgs::Twist& pos);
+    				const geometry_msgs::Twist& pos);
     void PublishMap(ros::Publisher& publisher);
 
+    void GetExtremes(double& xmin, double& xmax, double& ymin, double& ymax);
+
 private:
+	double DistanceToWall(double x, double y, double heading);
+	double DistanceBetweenPoints(const Point& first, const Point& second);
     double m_width;
     double m_height;
     PointCloud::Ptr m_pPointCloud;
     pcl::KdTreeFLANN<Point> m_kdTree;
+
 };
 
 

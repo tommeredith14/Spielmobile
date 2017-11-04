@@ -70,7 +70,7 @@ public:
 		if (m_pRobotLocation != nullptr)
 		{
 			visualization_msgs::Marker locationMsg;
-			locationMsg.header.frame_id = "my_frame";
+			locationMsg.header.frame_id = "world_frame";
 			locationMsg.header.stamp = ros::Time::now();
 			locationMsg.ns = "Spielmobile_Visualizer";
 			locationMsg.action = visualization_msgs::Marker::ADD;
@@ -84,8 +84,8 @@ public:
 			tf::Quaternion orient = tf::createQuaternionFromYaw(m_pRobotLocation->angular.z);
 			tf::quaternionTFToMsg(orient, locationMsg.pose.orientation);
 			locationMsg.scale.x = 0.3;
-			locationMsg.scale.y = 0.3;
-			locationMsg.scale.z = 0.3;
+			locationMsg.scale.y = 0.1;
+			locationMsg.scale.z = 0.1;
 
 
 			m_vizPub.publish(locationMsg);
@@ -94,7 +94,7 @@ public:
 		{
 
 			sensor_msgs::PointCloud2 mapMsg = *m_pMapCloud;
-			mapMsg.header.frame_id = "my_frame";
+			mapMsg.header.frame_id = "world_frame";
 			mapMsg.header.stamp = ros::Time::now();
 
 			m_mapPub.publish(mapMsg);
@@ -116,7 +116,7 @@ int main (int argc, char** argv)
 	ros::NodeHandle nh;
 	CSpielmobileVilsualizer SpielmobileVisualizer(nh);
 
-	ros::Rate rate(10);
+	ros::Rate rate(1);
 	while (ros::ok())
 	{
 

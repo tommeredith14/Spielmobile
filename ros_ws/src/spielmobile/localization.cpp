@@ -196,6 +196,7 @@ void motionCallback(const geometry_msgs::Twist::ConstPtr& update) {
     }
 }
 
+ros::Publisher particlePub;
 
 void MotionUpdater() {
 
@@ -211,9 +212,13 @@ void MotionUpdater() {
         updateLock.unlock();
 
         pParticleFilter->ProcessMotionUpdate(update);
+
+        pParticleFilter->PublishParticles(particlePub);
     }
 
 }
+
+
 
 void ParticleFilter() {
     if (pMap == nullptr) {
@@ -226,13 +231,17 @@ void ParticleFilter() {
         std::unique_lock<std::mutex> scanLock(mutexLastScan);
         condvarScanReady.wait(scanLock,
             []{return bScanReady;});
-
+        bScanReady = false;
+        std::cout << "got a scan\n";
         pScan = lastScan;
         scanLock.unlock();
 
         pParticleFilter->ProcessScanUpdate(pScan);
 
+        pParticleFilter->PublishParticles(particlePub);
+
     }
+
 }
 
 
@@ -246,11 +255,12 @@ int main(int argc, char **argv) {
     ros::NodeHandle nh;
 
     pMap = new CMap(argv[1]);
-    pParticleFilter = new CParticleFilter();
+    pParticleFilter = new CParticleFilter(pMap);
 
     ros::Subscriber sub = nh.subscribe<sensor_msgs::LaserScan>("/scan", 1,scanCallback);
     ros::Subscriber sub2 = nh.subscribe<geometry_msgs::Twist>("spielmobile/motion_updates", 20,motionCallback);
     ros::Publisher mapPub = nh.advertise<PointCloud>("spielmobile/current_map",1);
+    particlePub = nh.advertise<PointCloud>("spielmobile_particles", 1);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(2000));
     pMap->PublishMap(mapPub);
@@ -260,6 +270,8 @@ int main(int argc, char **argv) {
 
 
     ros::spin();
+    motionThread.join();
+    patricleThread.join();
     return 0;
 
 }

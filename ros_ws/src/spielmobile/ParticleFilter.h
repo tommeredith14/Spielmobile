@@ -23,9 +23,9 @@ public:
     double ComputeParticleProbability(sensor_msgs::LaserScan::ConstPtr&
                                                     scan,CMap* pMap);
 private:
-    double m_xpos;
-    double m_ypos;
-    double m_heading;
+    double x;
+    double y;
+    double heading;
 };
 
 
@@ -33,12 +33,13 @@ private:
 class CParticleFilter {
 
 public:
-    CParticleFilter(int numParticles = 200);
+    CParticleFilter(CMap* pMap, int numParticles = 1000);
     ~CParticleFilter();
     void ProcessMotionUpdate(geometry_msgs::Twist::ConstPtr& update);
     void ProcessScanUpdate(sensor_msgs::LaserScan::ConstPtr& scan);
     void SetMap(CMap* pmap);
     
+    void PublishParticles(ros::Publisher& pub);
 
 
 private:
@@ -51,6 +52,7 @@ private:
 
     bool m_bFreshUpdates;
     std::mutex m_mutexFreshUpdates;
+
 
 };
 

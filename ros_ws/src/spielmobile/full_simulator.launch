@@ -1,0 +1,10 @@
+<launch>
+	<arg name="map" default="testmap.vmap" />
+	<node pkg="rviz" type="rviz" name="rviz"/>
+	<node pkg="spielmobile" type="spielmobile_visualizer" name="spielmobile_visualizer"/>
+	<node pkg="spielmobile" type="Localization" name="Localization" args="$(arg map)" />
+	<node pkg="spielmobile" type="spielmobile_simulator" name="spielmobile_simulator" args = "$(arg map)" />
+
+
+
+</launch>

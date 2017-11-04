@@ -5,11 +5,13 @@
 #include <ctime>
 #include <cmath>
 #include <random>
+#include <limits>
+#include <iostream>
 
-const double copyPosStdDev = 1.0;
+const double copyPosStdDev = 0.0;
 const double copyHeadingStdDev = 1.0;
-const double motionPosStdDev = 1.0;
-const double motionHeadingStdDev = 1.0;
+const double motionPosStdDev = 0.05;
+const double motionHeadingStdDev = 0.05;
 
 /****************************/
 /* RANDOM GENERATORS */
@@ -21,7 +23,11 @@ std::normal_distribution<double> copyHeadingNoise(0.0, copyHeadingStdDev);
 std::normal_distribution<double> motionPosNoise(0.0, motionPosStdDev);
 std::normal_distribution<double> motionHeadingNoise(0.0, motionHeadingStdDev);
 
-
+std::uniform_real_distribution<double> xUniformDistribution;
+std::uniform_real_distribution<double> yUniformDistribution;
+std::uniform_real_distribution<double> headingUniformDistribution(0.0, 2*M_PI);
+std::uniform_real_distribution<double> resamplerDistribution;
+std::uniform_int_distribution<int> randomIndex;
 
 /****************************************************************/
 /* PARTICLE */
@@ -29,20 +35,20 @@ std::normal_distribution<double> motionHeadingNoise(0.0, motionHeadingStdDev);
 int xMax;//////////////////////
 int yMax;/////////////////////
 CParticle::CParticle() {
-    m_xpos = ((double)rand())/RAND_MAX*xMax;
-    m_ypos = ((double)rand())/RAND_MAX*yMax;
-    m_heading = ((double)rand())/RAND_MAX*2*M_PI;
+    x = xUniformDistribution(noise_generator);
+    y = yUniformDistribution(noise_generator);
+    heading = headingUniformDistribution(noise_generator);
 }
 
 CParticle::CParticle(const CParticle& rhs, bool randomize) {
     if (randomize) {
-        m_heading = rhs.m_heading + copyHeadingNoise(noise_generator);
-        m_xpos = rhs.m_xpos + copyPosNoise(noise_generator);
-        m_ypos = rhs.m_ypos + copyPosNoise(noise_generator);
+        heading = rhs.heading + copyHeadingNoise(noise_generator);
+        x = rhs.x + copyPosNoise(noise_generator);
+        y = rhs.y + copyPosNoise(noise_generator);
     } else {
-        m_heading = rhs.m_heading;
-        m_xpos = rhs.m_xpos;
-        m_ypos = rhs.m_ypos;
+        heading = rhs.heading;
+        x = rhs.x;
+        y = rhs.y;
     }
     
 }
@@ -54,22 +60,22 @@ void CParticle::MotionUpdate(const geometry_msgs::Twist::ConstPtr& update) {
     
     if (update->linear.x != 0)
     {
-        m_xpos += forward * cos(m_heading);
-        m_ypos += forward * sin(m_heading);
+        x += forward * cos(heading);
+        y += forward * sin(heading);
     }
     else if (rotation > 0) {
-        double x_centre = m_xpos - turnRad * sin(m_heading);
-        double y_centre = m_ypos + turnRad * cos(m_heading);
-        m_xpos = x_centre + turnRad * sin(m_heading + rotation);
-        m_ypos = y_centre - turnRad * cos(m_heading + rotation);
-        m_heading += rotation;
+        double x_centre = x - turnRad * sin(heading);
+        double y_centre = y + turnRad * cos(heading);
+        x = x_centre + turnRad * sin(heading + rotation);
+        y = y_centre - turnRad * cos(heading + rotation);
+        heading += rotation;
     } else {
         rotation = -rotation;
-        double x_centre = m_xpos + turnRad * sin(m_heading);
-        double y_centre = m_ypos - turnRad * cos(m_heading);
-        m_xpos = x_centre - turnRad * sin(m_heading - rotation);
-        m_ypos = y_centre + turnRad * cos(m_heading - rotation);
-        m_heading -= rotation;
+        double x_centre = x + turnRad * sin(heading);
+        double y_centre = y - turnRad * cos(heading);
+        x = x_centre - turnRad * sin(heading - rotation);
+        y = y_centre + turnRad * cos(heading - rotation);
+        heading -= rotation;
     }
 
 
@@ -77,7 +83,47 @@ void CParticle::MotionUpdate(const geometry_msgs::Twist::ConstPtr& update) {
 
 double CParticle::ComputeParticleProbability(sensor_msgs::LaserScan::ConstPtr&
                                                         scan, CMap* pMap) {
+    geometry_msgs::Twist location;
+    location.linear.x = x;
+    location.linear.y = y;
+    location.angular.z = heading;
+    sensor_msgs::LaserScan simScan;
+    pMap->SimulateScanFromPosition(simScan, location);
 
+    double lowestErr = std::numeric_limits<double>::infinity();
+    for (int orientation = -90; orientation < 90; orientation++)
+    {
+        double sumErr = 0;
+
+        for (int i = 0; i < 360; i+= 20)
+        {
+            double measured = scan->ranges[i];
+            double simulated = simScan.ranges[(i+orientation)%360];
+            
+            if (measured > 8.0)
+            {
+                measured = 8.0;
+            }
+            if (simulated > 8.0)
+            {
+                simulated = 8.0;
+            }
+            sumErr += (measured - simulated)*(measured - simulated);
+            if (sumErr > lowestErr)
+            {
+                break;
+            }
+
+        }
+        if (sumErr < lowestErr)
+        {
+            lowestErr = sumErr;
+        }
+
+    }
+    //if (lowestErr < 7)
+      //  std::cout << "Particle x: " << x << "  y: " << y << "  heading: " << heading << "  err: " << (1.0/sqrt(lowestErr)) << "\n";
+    return 1.0/sqrt(lowestErr);
 }
 
 /*****************************************************************/
@@ -85,10 +131,18 @@ double CParticle::ComputeParticleProbability(sensor_msgs::LaserScan::ConstPtr&
 /*****************************************************************/
 
 
-CParticleFilter::CParticleFilter(int numParticles)
-: m_bFreshUpdates(true)
+CParticleFilter::CParticleFilter(CMap* pMap, int numParticles)
+: m_bFreshUpdates(false),
+  m_pMap(pMap)
 {
-    srand(time(nullptr));
+    noise_generator = std::default_random_engine(time(0));
+    randomIndex = std::uniform_int_distribution<int>(0,numParticles);
+    double xmin, xmax, ymin, ymax;
+    m_pMap->GetExtremes(xmin, xmax, ymin, ymax);
+
+    xUniformDistribution = std::uniform_real_distribution<double>(xmin, xmax);
+    yUniformDistribution = std::uniform_real_distribution<double>(ymin, ymax);
+
     m_pParticleList = new std::vector<CParticle>(numParticles);
 
 }
@@ -123,6 +177,7 @@ void CParticleFilter::ProcessScanUpdate(sensor_msgs::LaserScan::ConstPtr& scan)
         return;
     }
     freshLock.unlock();
+    std::cout << "processing scan\n";
 
     std::vector<double> probabilityList(m_pParticleList->size());
     //calculate probability of each particle
@@ -132,9 +187,14 @@ void CParticleFilter::ProcessScanUpdate(sensor_msgs::LaserScan::ConstPtr& scan)
         particleNum++;
     }
 
-
+    ResampleParticles(probabilityList);
     //re-sample particles
 
+
+    std::cout << "done processing scan\n";
+    freshLock.lock();
+    m_bFreshUpdates = false;
+    freshLock.unlock();
 
 }
 
@@ -159,21 +219,47 @@ void CParticleFilter::ResampleParticles(std::vector<double>& vWeightings) {
     pNewParticleList->reserve(m_pParticleList->size());
 
     double maxweight = maxWeight(vWeightings) * 2.0;
+    resamplerDistribution = std::uniform_real_distribution<double>(0.0, maxweight);
     double beta = 0.0;
-    int index = rand()*m_pParticleList->size()/RAND_MAX;
+    int index = randomIndex(noise_generator);
     for (int i = 0; i < m_pParticleList->size(); i++) {
-        beta += ((double)rand())/RAND_MAX*maxweight;
-        while (beta < vWeightings[index]) {
+        beta += resamplerDistribution(noise_generator);
+        while (beta > vWeightings[index]) {
             beta -= vWeightings[index];
             index++;
             index %= m_pParticleList->size();
         }
         pNewParticleList->push_back((*m_pParticleList)[index]);
+        //std::cout << "Picked particle " << (*pNewParticleList)[i].x << ", " << (*pNewParticleList)[i].y << ", weight " << vWeightings[index] << "\n"; 
     }
     delete m_pParticleList;
     m_pParticleList = pNewParticleList;
 }
 
 void CParticleFilter::NormalizeProbabilities(std::vector<double>& vProbabilities) {
+
+}
+
+
+void CParticleFilter::PublishParticles(ros::Publisher& pub)
+{
+    PointCloud particleMsg;
+
+    particleMsg.header.frame_id = "world_frame";
+    //particleMsg.header.stamp = ros::Time::now();
+
+    std::unique_lock<std::mutex> lock(m_mutexParticles);
+    for (auto& particle : *m_pParticleList)
+    {
+        Point p;
+        p.x = particle.x;
+        p.y = particle.y;
+        p.z = 0;
+        particleMsg.push_back(p);
+    }
+
+    lock.unlock();
+
+    pub.publish(particleMsg);
 
 }
