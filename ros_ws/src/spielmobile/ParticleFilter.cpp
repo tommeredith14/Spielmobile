@@ -7,11 +7,12 @@
 #include <random>
 #include <limits>
 #include <iostream>
+#include <chrono>
 
 const double copyPosStdDev = 0.0;
 const double copyHeadingStdDev = 1.0;
-const double motionPosStdDev = 0.05;
-const double motionHeadingStdDev = 0.05;
+const double motionPosStdDev = 0.1;
+const double motionHeadingStdDev = 0.1;
 
 /****************************/
 /* RANDOM GENERATORS */
@@ -20,8 +21,8 @@ const double motionHeadingStdDev = 0.05;
 std::default_random_engine noise_generator;
 std::normal_distribution<double> copyPosNoise(0.0, copyPosStdDev);
 std::normal_distribution<double> copyHeadingNoise(0.0, copyHeadingStdDev);
-std::normal_distribution<double> motionPosNoise(0.0, motionPosStdDev);
-std::normal_distribution<double> motionHeadingNoise(0.0, motionHeadingStdDev);
+std::normal_distribution<double> motionPosNoise(1.0, motionPosStdDev);
+std::normal_distribution<double> motionHeadingNoise(1.0, motionHeadingStdDev);
 
 std::uniform_real_distribution<double> xUniformDistribution;
 std::uniform_real_distribution<double> yUniformDistribution;
@@ -54,9 +55,9 @@ CParticle::CParticle(const CParticle& rhs, bool randomize) {
 }
 
 void CParticle::MotionUpdate(const geometry_msgs::Twist::ConstPtr& update) {
-    double forward = update->linear.x + motionPosNoise(noise_generator);
-    double turnRad = update->linear.z + motionPosNoise(noise_generator);
-    double rotation = update->angular.z + motionHeadingNoise(noise_generator);
+    double forward = update->linear.x * motionPosNoise(noise_generator);
+    double turnRad = update->linear.z * motionPosNoise(noise_generator);
+    double rotation = update->angular.z * motionHeadingNoise(noise_generator);
     
     if (update->linear.x != 0)
     {
@@ -83,13 +84,23 @@ void CParticle::MotionUpdate(const geometry_msgs::Twist::ConstPtr& update) {
 
 double CParticle::ComputeParticleProbability(sensor_msgs::LaserScan::ConstPtr&
                                                         scan, CMap* pMap) {
+//#if 0
+
     geometry_msgs::Twist location;
     location.linear.x = x;
     location.linear.y = y;
     location.angular.z = heading;
     sensor_msgs::LaserScan simScan;
+
+    auto start = std::chrono::high_resolution_clock::now();
+
     pMap->SimulateScanFromPosition(simScan, location);
 
+    auto finish = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = finish - start;
+    std::cout << "simScan time: " << elapsed.count() << " s\n";
+
+start = std::chrono::high_resolution_clock::now();
     double lowestErr = std::numeric_limits<double>::infinity();
     for (int orientation = -90; orientation < 90; orientation++)
     {
@@ -121,9 +132,20 @@ double CParticle::ComputeParticleProbability(sensor_msgs::LaserScan::ConstPtr&
         }
 
     }
+    finish = std::chrono::high_resolution_clock::now();
+    elapsed = finish - start;
+    std::cout << "simScan time: " << elapsed.count() << " s\n";
     //if (lowestErr < 7)
       //  std::cout << "Particle x: " << x << "  y: " << y << "  heading: " << heading << "  err: " << (1.0/sqrt(lowestErr)) << "\n";
     return 1.0/sqrt(lowestErr);
+//#endif
+
+
+
+
+
+
+
 }
 
 /*****************************************************************/
@@ -179,22 +201,35 @@ void CParticleFilter::ProcessScanUpdate(sensor_msgs::LaserScan::ConstPtr& scan)
     freshLock.unlock();
     std::cout << "processing scan\n";
 
-    std::vector<double> probabilityList(m_pParticleList->size());
+    //std::vector<double> probabilityList(m_pParticleList->size());
     //calculate probability of each particle
+    std::vector<double> probabilityList = m_pMap->GetScanMatchMap()->
+                            AssessParticleSet(scan, m_pParticleList);
+    for (int i = 0; i < probabilityList.size(); i++)
+    {
+        probabilityList[i] = sqrt(probabilityList[i]);
+    }
+/*
     int particleNum = 0;
     for (auto &particle: (*m_pParticleList)) {
         probabilityList[particleNum] = particle.ComputeParticleProbability(scan, m_pMap);
         particleNum++;
     }
-
+*/
     ResampleParticles(probabilityList);
     //re-sample particles
 
 
-    std::cout << "done processing scan\n";
     freshLock.lock();
     m_bFreshUpdates = false;
     freshLock.unlock();
+    std::unique_lock<std::mutex> lock(m_mutexParticles);
+    for (auto& particle : *m_pParticleList)
+    {
+        std::cout << "Particle:  "<<particle.x << ", " << particle.y << std::endl;
+    }
+
+    std::cout << "done processing scan\n";
 
 }
 
@@ -254,8 +289,11 @@ void CParticleFilter::PublishParticles(ros::Publisher& pub)
         Point p;
         p.x = particle.x;
         p.y = particle.y;
+#ifdef POINT3D
         p.z = 0;
+#endif
         particleMsg.push_back(p);
+        //std::cout << "Particle:  "<<p.x << ", " << p.y << std::endl;
     }
 
     lock.unlock();

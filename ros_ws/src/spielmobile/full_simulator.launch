@@ -1,5 +1,6 @@
 <launch>
 	<arg name="map" default="testmap.vmap" />
+	<node pkg="tf" type="static_transform_publisher" name="world_frame_tf" args="0.0 0.0 0.0 0.0 0.0 0.0 map world_frame 100" />
 	<node pkg="rviz" type="rviz" name="rviz"/>
 	<node pkg="spielmobile" type="spielmobile_visualizer" name="spielmobile_visualizer"/>
 	<node pkg="spielmobile" type="Localization" name="Localization" args="$(arg map)" />

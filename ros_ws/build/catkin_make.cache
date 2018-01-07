@@ -1,2 +1,0 @@
-spielmobile
--DCATKIN_DEVEL_PREFIX=/home/pi/Documents/spielmobile/ros_ws/devel -DCMAKE_INSTALL_PREFIX=/home/pi/Documents/spielmobile/ros_ws/install -G Unix Makefiles

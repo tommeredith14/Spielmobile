@@ -1,8 +1,0 @@
-prefix=/home/pi/Documents/spielmobile/ros_ws/devel
-
-Name: spielmobile
-Description: Description of spielmobile
-Version: 0.0.0
-Cflags: 
-Libs: -L/home/pi/Documents/spielmobile/ros_ws/devel/lib 
-Requires: 

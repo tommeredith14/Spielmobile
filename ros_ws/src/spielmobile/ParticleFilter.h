@@ -22,7 +22,7 @@ public:
     void MotionUpdate(const geometry_msgs::Twist::ConstPtr& update);
     double ComputeParticleProbability(sensor_msgs::LaserScan::ConstPtr&
                                                     scan,CMap* pMap);
-private:
+//private:
     double x;
     double y;
     double heading;
@@ -33,7 +33,7 @@ private:
 class CParticleFilter {
 
 public:
-    CParticleFilter(CMap* pMap, int numParticles = 1000);
+    CParticleFilter(CMap* pMap, int numParticles = 200);
     ~CParticleFilter();
     void ProcessMotionUpdate(geometry_msgs::Twist::ConstPtr& update);
     void ProcessScanUpdate(sensor_msgs::LaserScan::ConstPtr& scan);

@@ -232,7 +232,7 @@ void ParticleFilter() {
         condvarScanReady.wait(scanLock,
             []{return bScanReady;});
         bScanReady = false;
-        std::cout << "got a scan\n";
+        //std::cout << "got a scan\n";
         pScan = lastScan;
         scanLock.unlock();
 
@@ -260,16 +260,21 @@ int main(int argc, char **argv) {
     ros::Subscriber sub = nh.subscribe<sensor_msgs::LaserScan>("/scan", 1,scanCallback);
     ros::Subscriber sub2 = nh.subscribe<geometry_msgs::Twist>("spielmobile/motion_updates", 20,motionCallback);
     ros::Publisher mapPub = nh.advertise<PointCloud>("spielmobile/current_map",1);
+    ros::Publisher occupancyPub = nh.advertise<nav_msgs::OccupancyGrid>("spielmobile_occupancy",1);
+    ros::Publisher occupancyPubLowRes = nh.advertise<nav_msgs::OccupancyGrid>("spielmobile_occupancy_lowres",1);
     particlePub = nh.advertise<PointCloud>("spielmobile_particles", 1);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(2000));
     pMap->PublishMap(mapPub);
+    pMap->PublishOccupancyMap(occupancyPub);
+    pMap->PublishLowResOccupancyMap(occupancyPubLowRes );
 
     std::thread motionThread(MotionUpdater);
     std::thread patricleThread(ParticleFilter);
 
 
     ros::spin();
+    std::terminate();
     motionThread.join();
     patricleThread.join();
     return 0;

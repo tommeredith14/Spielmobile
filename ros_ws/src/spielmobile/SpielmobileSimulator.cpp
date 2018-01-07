@@ -62,7 +62,7 @@ public:
 		ros::spin();
 	}
 	void ScannerThread() {
-		ros::Rate loop_rate(1);
+		ros::Rate loop_rate(10);
 		while (ros::ok()) {
 			sensor_msgs::LaserScan scan;
 			std::unique_lock<std::mutex> lock(m_locationMutex);
