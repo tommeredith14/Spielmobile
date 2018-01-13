@@ -203,6 +203,8 @@ add_executable(ARM_comms ARM_comms.cpp)
 target_link_libraries(ARM_comms ${catkin_LIBRARIES})
 add_executable(Localization localization.cpp ParticleFilter.cpp map.cpp)
 target_link_libraries(Localization ${catkin_LIBRARIES})
+add_executable(SLAM slamnode.cpp slam.cpp map.cpp)
+target_link_libraries(SLAM ${catkin_LIBRARIES})
 
 #add_executable(pctest pointcloudTester.cpp PointCloud.cpp map.cpp)
 #target_link_libraries(pctest ${catkin_LIBRARIES})

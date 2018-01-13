@@ -52,6 +52,8 @@ public:
     float x;
     float y;
     float probOfScan;
+    bool bObserved;
+    long observedInIter;
 };
 
 class CParticle;
@@ -60,17 +62,21 @@ class CScanMatchMap
 public:
     CScanMatchMap(float width, float height, float resolution, float xMin, float yMin);
     void SetMapPointCloud(PointCloud::Ptr);
+    void SetUpForSlam();
     ScanMatchPoint* Point(float x, float y, int* mapX = nullptr, int* mapY = nullptr);
+    ScanMatchPoint* LowResPoint(float x, float y, int* mapX = nullptr, int* mapY = nullptr);
     void Publish(ros::Publisher& pub);
     void PublishLowRes(ros::Publisher& pub);
     ScanMatchPoint AssessScan(sensor_msgs::LaserScan::ConstPtr& scan,
                                const SearchScope& searchScope);
+    void InsertScan (sensor_msgs::LaserScan::ConstPtr&, geometry_msgs::Twist& pos);
     std::vector<double> AssessParticleSet(sensor_msgs::LaserScan::ConstPtr& scan, 
                                 std::vector<CParticle>* pParticleVector);
     double AssessPoint(double x, double y, const std::vector<::Point>& vectScanPoints);
 
 private:
     void GenerateLowResMap();
+    void GaussianAboutPoint(double x, double y);
     //TODO : assess point given vector of scan points 
     typedef std::vector<ScanMatchPoint> Column;
 
@@ -83,7 +89,7 @@ private:
     float m_yMin;
 
     float m_lowResolution;
-
+    long m_scanIter;
 
 };
 
