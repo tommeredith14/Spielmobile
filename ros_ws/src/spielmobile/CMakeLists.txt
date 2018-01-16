@@ -199,18 +199,25 @@ include_directories(
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+add_library(map_lib map.cpp)
+target_link_libraries(map_lib ${catkin_LIBRARIES})
+add_library(particle_lib ParticleFilter.cpp)
+target_link_libraries(particle_lib map_lib)
+add_library(slam_lib slam.cpp)
+target_link_libraries(slam_lib map_lib)
+
 add_executable(ARM_comms ARM_comms.cpp)
 target_link_libraries(ARM_comms ${catkin_LIBRARIES})
-add_executable(Localization localization.cpp ParticleFilter.cpp map.cpp)
-target_link_libraries(Localization ${catkin_LIBRARIES})
-add_executable(SLAM slamnode.cpp slam.cpp map.cpp)
-target_link_libraries(SLAM ${catkin_LIBRARIES})
+add_executable(Localization localization.cpp)
+target_link_libraries(Localization map_lib particle_lib ${catkin_LIBRARIES})
+add_executable(SLAM slamnode.cpp)
+target_link_libraries(SLAM map_lib slam_lib ${catkin_LIBRARIES})
 
 #add_executable(pctest pointcloudTester.cpp PointCloud.cpp map.cpp)
 #target_link_libraries(pctest ${catkin_LIBRARIES})
 
-add_executable(spielmobile_simulator SpielmobileSimulator.cpp map.cpp)
-target_link_libraries(spielmobile_simulator ${catkin_LIBRARIES})
+add_executable(spielmobile_simulator SpielmobileSimulator.cpp)
+target_link_libraries(spielmobile_simulator map_lib ${catkin_LIBRARIES})
 
 add_executable(spielmobile_visualizer SpielmobileVisualizer.cpp)
 target_link_libraries(spielmobile_visualizer ${catkin_LIBRARIES})

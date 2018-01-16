@@ -18,9 +18,22 @@
 //Other includes
 #include "map.h"
 
+const double LINEAR_X_STD_DEV = 0.05;
+const double ANGULAR_RAD_STD_DEV = 0.05;
+const double ANGULAR_HEADING_STD_DEV = 0.05;
+
+const double SCAN_DIST_STD_DEV = 0.05;
+const double PROB_SCAN_MISS = 0.05;
+const double PROB_SCAN_RAND = 0.01;
+
 class CSpielobileSimulator {
 public:
-	CSpielobileSimulator(std::string mapfile, double x = 1, double y = 1, double heading = 0) {
+	CSpielobileSimulator(std::string mapfile, double x = 1, double y = 1, double heading = 0)
+	 : m_linearXNoise(1.0,LINEAR_X_STD_DEV),
+	   m_angularRadNoise(1.0, ANGULAR_RAD_STD_DEV),
+	   m_headingNoise(1.0, ANGULAR_HEADING_STD_DEV),
+	   m_scanNoise(0.0, SCAN_DIST_STD_DEV)
+	{
 		m_pMap = new CMap(mapfile);
 		m_robotLocation.linear.x = x;
 		m_robotLocation.linear.y = y;
@@ -68,6 +81,22 @@ public:
 			std::unique_lock<std::mutex> lock(m_locationMutex);
 			m_pMap->SimulateScanFromPosition(scan, m_robotLocation);
 			lock.unlock();
+			for (int deg = 0; deg < scan.ranges.size(); deg++)
+			{
+				scan.ranges[deg] += m_scanNoise(m_noiseGenerator);
+				if (scan.ranges[deg] > 8)
+				{
+					scan.ranges[deg] = std::numeric_limits<float>::infinity();
+				}
+				//if (m_randNumGen(m_noiseGenerator) < PROB_SCAN_MISS)
+				//{
+				//	scan.ranges[deg] = std::numeric_limits<float>::infinity();
+				//}
+				//else if (m_randNumGen(m_noiseGenerator) < PROB_SCAN_RAND)
+				//{
+				//	scan.ranges[deg] = m_randNumGen(m_noiseGenerator) * 8.0;
+				//}
+			}
 			
 			m_scanPub.publish(scan);			
 
@@ -87,10 +116,18 @@ private:
     std::thread* m_pScannerThread;
     std::thread* m_pSpinnerThread;
 
+	std::default_random_engine m_noiseGenerator;
+	std::normal_distribution<double> m_linearXNoise;//(1.0, LINEAR_X_STD_DEV);
+	std::normal_distribution<double> m_angularRadNoise;//(1.0, ANGULAR_RAD_STD_DEV);
+	std::normal_distribution<double> m_headingNoise;//(1.0, ANGULAR_HEADING_STD_DEV);
+	std::normal_distribution<double> m_scanNoise;//(0.0, SCAN_DIST_STD_DEV);
+
+	std::uniform_real_distribution<double> m_randNumGen;
+
     void UpdateLocation(const geometry_msgs::Twist::ConstPtr& update) {
-        double forward = update->linear.x;// + motionPosNoise(noise_generator);
-	    double turnRad = update->linear.z;// + motionPosNoise(noise_generator);
-	    double rotation = update->angular.z;// + motionHeadingNoise(noise_generator);
+        double forward = update->linear.x * m_linearXNoise(m_noiseGenerator);
+	    double turnRad = update->linear.z * m_angularRadNoise(m_noiseGenerator);
+	    double rotation = update->angular.z * m_headingNoise(m_noiseGenerator);
 	    std::unique_lock<std::mutex> lock(m_locationMutex);
 	    if (update->linear.x != 0)
 	    {

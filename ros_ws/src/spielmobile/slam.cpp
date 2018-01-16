@@ -18,7 +18,7 @@ CSlam::CSlam()
       m_pMap(nullptr),
       m_bFreshUpdates(true)
 {
-    m_pCurSubmap = new CScanMatchMap(30,30,0.03,-5,-5);
+    m_pCurSubmap = new CScanMatchMap(10,10,0.03,-5,-5);
     m_pCurSubmap->SetUpForSlam();
 
 
@@ -71,7 +71,7 @@ void CSlam::ProcessScan(sensor_msgs::LaserScan::ConstPtr& scan)
         return;
     }
     freshLock.unlock();
-    //std::cout << "processing scan\n";
+    std::cout << "processing scan\n";
     std::unique_lock<std::mutex> posLock(m_mutexPos);
 
     if (m_bFirstScan)
@@ -91,12 +91,25 @@ void CSlam::ProcessScan(sensor_msgs::LaserScan::ConstPtr& scan)
     }
 
     //Assess the scan and insert it into the map
+    SearchScope searchScope;
+    searchScope.xMin = m_curPos.linear.x - 1;
+    searchScope.yMin = m_curPos.linear.y - 1;
+    searchScope.xMax = m_curPos.linear.x + 1;
+    searchScope.yMax = m_curPos.linear.y + 1;
+    searchScope.headingMin = m_curPos.angular.z * 180/M_PI - 30;
+    searchScope.headingMax = m_curPos.angular.z * 180/M_PI + 30;
+    ScanMatchPoint bestPoint = m_pCurSubmap->AssessScan(scan,searchScope);
+
+    m_curPos.linear.x = bestPoint.x;
+    m_curPos.linear.y = bestPoint.y;
+    m_curPos.angular.z = bestPoint.bestHeading;
     m_pCurSubmap->InsertScan(scan, m_curPos);
     posLock.unlock();
 
     freshLock.lock();
     m_bFreshUpdates = false;
     freshLock.unlock();
+    std::cout << "Done scan\n";
 }
 
 void CSlam::Publish(ros::Publisher& mapPub, ros::Publisher& posPub)

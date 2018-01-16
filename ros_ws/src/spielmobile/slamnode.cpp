@@ -52,6 +52,8 @@ ros::Publisher posPub;
 //CParticleFilter* pParticleFilter;
 CSlam* pSLAM;
 
+void MotionUpdater();
+void DoSlam();
 /******************************************************************************/
 /* MAIN FUNCTIONS */
 /******************************************************************************/
@@ -70,6 +72,7 @@ void scanCallback(const sensor_msgs::LaserScan::ConstPtr& scan) {
     bScanReady = true;
     lock.unlock();
     condvarScanReady.notify_all();
+    DoSlam();
 }
 
 /* Callback when a motion update has been received from the ARM
@@ -90,6 +93,7 @@ void motionCallback(const geometry_msgs::Twist::ConstPtr& update) {
         std::cout << "The motion queue is larger than its ideal maximum size:  "
             "filter thread is not keeping up\n";
     }
+    MotionUpdater();
 }
 
 ros::Publisher particlePub;
@@ -97,7 +101,7 @@ ros::Publisher particlePub;
 void MotionUpdater() {
 
 
-    while(ros::ok()) {
+    //while(ros::ok()) {
         geometry_msgs::Twist::ConstPtr update;
         std::unique_lock<std::mutex> updateLock(mutexMotionQueue);
         condvarMotionUpdate.wait(updateLock,
@@ -111,14 +115,14 @@ void MotionUpdater() {
 
         //pSLAM->PublishParticles(particlePub);
         pSLAM->Publish(slamMapPub,posPub);
-    }
+    //}
 
 }
 
 
 
 void DoSlam() {
-    while (ros::ok())
+    //while (ros::ok())
     {
         sensor_msgs::LaserScan::ConstPtr pScan;
         std::unique_lock<std::mutex> scanLock(mutexLastScan);
@@ -151,7 +155,7 @@ int main(int argc, char **argv) {
     pSLAM = new CSlam();
 
     ros::Subscriber sub = nh.subscribe<sensor_msgs::LaserScan>("/scan", 1,scanCallback);
-    ros::Subscriber sub2 = nh.subscribe<geometry_msgs::Twist>("spielmobile/motion_updates", 20,motionCallback);
+    ros::Subscriber sub2 = nh.subscribe<geometry_msgs::Twist>("spielmobile/motion_updates", 100,motionCallback);
     //ros::Publisher mapPub = nh.advertise<PointCloud>("spielmobile/current_map",1);
     slamMapPub = nh.advertise<nav_msgs::OccupancyGrid>("spielmobile_map2",1);
     posPub = nh.advertise<visualization_msgs::Marker>("spielmobile_pos",1);
@@ -163,14 +167,14 @@ int main(int argc, char **argv) {
     //pMap->PublishOccupancyMap(occupancyPub);
     //pMap->PublishLowResOccupancyMap(occupancyPubLowRes );
 
-    std::thread motionThread(MotionUpdater);
-    std::thread scanThread(DoSlam);
+    //std::thread motionThread(MotionUpdater);
+    //std::thread scanThread(DoSlam);
 
 
     ros::spin();
     std::terminate();
-    motionThread.join();
-    scanThread.join();
+    //motionThread.join();
+    //scanThread.join();
     return 0;
 
 }

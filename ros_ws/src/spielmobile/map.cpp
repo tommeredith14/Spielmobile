@@ -211,6 +211,7 @@ CScanMatchMap::CScanMatchMap(float width, float height, float resolution, float 
     m_xMin = xMin;
     m_yMin = yMin;
     m_resolution = resolution;
+    m_lowResolution = m_resolution * 10;
     m_width = width;
     m_height = height;
     m_scanIter = 0;
@@ -221,14 +222,14 @@ CScanMatchMap::CScanMatchMap(float width, float height, float resolution, float 
         {
             vectCol[y].x = xMin + x*resolution;
             vectCol[y].y = yMin + y*resolution;
-            vectCol[y].prob = 0.1; //TODO
+            vectCol[y].prob = P_MISS; //TODO
             vectCol[y].bObserved = false;
             vectCol[y].observedInIter = -1;
             //TODO observed
         }
         this->m_mapPoints.push_back(vectCol);
     }
-
+    GenerateLowResMap();
 }
 
 ScanMatchPoint* CScanMatchMap::Point(float x, float y, int* pMapX, int* pMapY)
@@ -238,7 +239,13 @@ ScanMatchPoint* CScanMatchMap::Point(float x, float y, int* pMapX, int* pMapY)
 
     if (mapX < 0 || mapY < 0 || mapX >= m_mapPoints.size() || mapY >= m_mapPoints[0].size())
     {
-        return nullptr;
+        ExpandToIncludePoint(x,y);
+        mapX = (int)(((x - m_xMin)/m_resolution) + 0.5);
+        mapY = (int)(((y - m_yMin)/m_resolution) + 0.5);
+        if (mapX < 0 || mapY < 0 || mapX >= m_mapPoints.size() || mapY >= m_mapPoints[0].size())
+        {
+            return nullptr;
+        }
     }
 
     if (pMapX) *pMapX = mapX;
@@ -255,7 +262,13 @@ ScanMatchPoint* CScanMatchMap::LowResPoint(float x, float y, int* pMapX, int* pM
 
     if (mapX < 0 || mapY < 0 || mapX >= m_lowResMapPoints.size() || mapY >= m_lowResMapPoints[0].size())
     {
-        return nullptr;
+        ExpandToIncludePoint(x,y);
+        mapX = (int)(((x - m_xMin)/m_lowResolution) + 0.5);
+        mapY = (int)(((y - m_yMin)/m_lowResolution) + 0.5);
+        if (mapX < 0 || mapY < 0 || mapX >= m_lowResMapPoints.size() || mapY >= m_lowResMapPoints[0].size())
+        {
+            return nullptr;
+        }
     }
 
     if (pMapX) *pMapX = mapX;
@@ -312,10 +325,10 @@ void CScanMatchMap::SetMapPointCloud(PointCloud::Ptr pPointCloud)
 void CScanMatchMap::GenerateLowResMap()
 {
     m_lowResolution = m_resolution*10;
-    int lowResXSize = (int)(m_mapPoints.size()/10.0 + 0.5);
-    int lowResYSize = (int)(m_mapPoints[0].size()/10.0 + 0.5);
+    int lowResXSize = (int)(m_mapPoints.size()/10.0 + 0.5) + 1;
+    int lowResYSize = (int)(m_mapPoints[0].size()/10.0 + 0.5) + 1;
 
-    m_lowResMapPoints.resize(lowResYSize);
+    m_lowResMapPoints.resize(lowResXSize);
     int colNum = 0;
     for (auto& col : m_lowResMapPoints)
     {
@@ -326,6 +339,8 @@ void CScanMatchMap::GenerateLowResMap()
             lowResPoint.x = m_xMin + colNum * m_lowResolution + m_lowResolution/2;
             lowResPoint.y = m_yMin + rowNum * m_lowResolution + m_lowResolution/2;
             lowResPoint.prob = 0;
+            lowResPoint.bObserved = false;
+            lowResPoint.observedInIter = -1;
             for (int i = colNum*10; i < (colNum+1)*10; i++)
             {
                 if (i >= m_mapPoints.size()) continue;
@@ -457,6 +472,22 @@ double CScanMatchMap::AssessPoint(double x, double y, const std::vector<::Point>
     return score;
 }
 
+double CScanMatchMap::AssessLowResPoint(double x, double y, const std::vector<::Point>& vectScanPoints)
+{
+    double score = 1.0;
+    for (auto& scanPoint : vectScanPoints)
+    {
+        ScanMatchPoint* matchPoint = this->LowResPoint(scanPoint.x + x, scanPoint.y + y, nullptr, nullptr);
+        if (!matchPoint)
+        {
+            score *= P_MISS;//TODO
+            continue;
+        }
+        score *= matchPoint->prob; 
+    }
+    return score;
+}
+
 void CScanMatchMap::SetUpForSlam()
 {
     //TODO (blank for now)
@@ -477,9 +508,9 @@ static const double ODDS_PMISS = odds(P_MISS);
 static double ProbUpdate(double old, bool hit)
 {
     double newProb = invOdds(odds(old)*((hit)?ODDS_PHIT:ODDS_PMISS));
-    if (newProb < 0)
+    if (newProb < 0.1)
     {
-        newProb = 0;
+        newProb = 0.1;
     }
     if (newProb > 1)
     {
@@ -528,6 +559,45 @@ void CScanMatchMap::GaussianAboutPoint(double x, double y)
 
         }
 }
+void CScanMatchMap::SmallGaussianAboutPoint(double x, double y)
+{
+        int mapX = -1;
+        int mapY = -1;
+        ScanMatchPoint* pMapPoint = this->Point(x, y, &mapX, &mapY);
+
+        pMapPoint->prob = ProbUpdate(pMapPoint->prob, P_HIT);
+
+        //Compute gaussian circle around point
+
+        for (int nearX = mapX - GAUSS_RADIUS/3/m_resolution; 
+                nearX < mapX + GAUSS_RADIUS/3/m_resolution; nearX++)
+        {
+            if (nearX < 0 || nearX >= m_mapPoints.size()) continue;
+            for (int nearY = mapY - GAUSS_RADIUS/3/m_resolution;
+                nearY < mapY + GAUSS_RADIUS/3/m_resolution; nearY++)
+            {
+                if (nearY < 0 || nearY >= m_mapPoints[nearX].size()) continue;
+
+                ScanMatchPoint* pNearPoint = &m_mapPoints[nearX][nearY];
+                //if (pNearPoint->bObserved) continue;
+                float sqrDist = (x - pNearPoint->x)*(x - pNearPoint->x)
+                    +   (y - pNearPoint->y)*(y - pNearPoint->y);
+                
+                float tempProb = normWeighter * exp(-sqrDist/normExpDiviser/4);
+                //if (tempProb > pNearPoint->prob)
+                //{
+                    pNearPoint->prob = ProbUpdate(pNearPoint->prob, tempProb);
+                    pNearPoint->observedInIter = m_scanIter;
+                    ScanMatchPoint* pLowResPoint = LowResPoint(pNearPoint->x, pNearPoint->y);
+                    if (pLowResPoint)
+                    {
+                        pLowResPoint->observedInIter = m_scanIter;
+                    }
+                //}
+            }
+
+        }
+}
 
 void CScanMatchMap::InsertScan(sensor_msgs::LaserScan::ConstPtr& scan, 
             geometry_msgs::Twist& pos)
@@ -555,11 +625,12 @@ void CScanMatchMap::InsertScan(sensor_msgs::LaserScan::ConstPtr& scan,
             }
             else
             {
-                //update probability if not already sees iterationn
+                //update probability if not already seen this iterationn
                 if (pHitPoint->observedInIter < m_scanIter)
                 {
                     pHitPoint->prob = ProbUpdate(pHitPoint->prob, true);
                     pHitPoint->observedInIter = m_scanIter;
+                    //SmallGaussianAboutPoint(endx, endy);
                 }
             }
             ScanMatchPoint* pLowResPoint = LowResPoint(pHitPoint->x,pHitPoint->y);
@@ -592,8 +663,8 @@ void CScanMatchMap::InsertScan(sensor_msgs::LaserScan::ConstPtr& scan,
             double endx = pos.linear.x + dist*dx;
             int direction = (dx > 0)?1:-1;
             double yStep = m_resolution*slope*direction;
-            for (double x = pos.linear.x; (direction == 1 && x < endx) ||
-                            (direction == -1 && x > endx);
+            for (double x = pos.linear.x; (direction == 1 && x < endx - 0.1) ||
+                            (direction == -1 && x > endx+0.1);
                              x+= m_resolution*direction)
             {
                 ScanMatchPoint* pPoint = this->Point(x,y,nullptr,nullptr);
@@ -634,8 +705,8 @@ void CScanMatchMap::InsertScan(sensor_msgs::LaserScan::ConstPtr& scan,
             int direction = (dy > 0)?1:-1;
             double xStep = m_resolution*slope*direction;
             for (double y = pos.linear.y; 
-                (direction == 1 && y < endy) ||
-                    (direction == -1 && y > endy);
+                (direction == 1 && y < endy - 0.1) ||
+                    (direction == -1 && y > endy + 0.1);
                 y+= m_resolution*direction)
             {
                 ScanMatchPoint* pPoint = this->Point(x,y,nullptr,nullptr);
@@ -700,29 +771,345 @@ void CScanMatchMap::InsertScan(sensor_msgs::LaserScan::ConstPtr& scan,
     m_scanIter++;
 }
 
+class BestLowResList : public std::vector<ScanMatchPoint*>
+{
+public:
+    BestLowResList(int maxSize)
+     : std::vector<ScanMatchPoint*>(0),
+       m_maxSize(maxSize)
+    {
+        
+    }
+    void InsertNewPoint(ScanMatchPoint* point)
+    {
+        if (size() < m_maxSize)
+        {
+            InsertInPos(point);
+        }
+        else if (point->probOfScan < back()->probOfScan)
+        {
+            return;
+        }
+        else
+        {
+            InsertInPos(point);
+        }
+    }
+    void RemovePoint(ScanMatchPoint* pPoint)
+    {
+        for(auto it = begin(); it != end(); ++it)
+        {
+            if (pPoint == (*it))
+            {
+                erase(it);
+                return;
+            }
+        }
+        
+    }
+private:
+    void InsertInPos(ScanMatchPoint* point)
+    {
+        for(auto it = begin(); it != end(); ++it)
+        {
+            /*if (point == (*it))
+            {
+                if (point->probOfScan > (*it)->probOfScan)
+                {
+                    erase(it);
+                    InsertInPos(point);
+                    return;
+                }
+                else
+                {
+                    return;
+                }
+            }*/
+            if (point->probOfScan > (*it)->probOfScan)
+            {
+                this->insert(it, point);
+                if (size() > m_maxSize)
+                {
+                    this->pop_back();
+                }
+                return;
+            }
+        }
+        //if we are not full but not inserted, stick on the end
+        if (size() < m_maxSize)
+        {
+            push_back(point);
+        }
+    }
+
+    int m_maxSize;
+};
 
 ScanMatchPoint CScanMatchMap::AssessScan(sensor_msgs::LaserScan::ConstPtr& scan,
                                          const SearchScope& searchScope)
 {
-   /* for (int headingDeg = searchScope.headingMin;
+    //Assess Low-res search window, maintain list of top spots (20?)
+    BestLowResList BestLowRes(20);
+
+    for (int headingDeg = searchScope.headingMin;
          headingDeg < searchScope.headingMax;
-         headingDeg++)
+         headingDeg+=5)
     {
+        int correctedDegree = headingDeg%360;
         //compute points as if around 0,0
-        std::vector<Point> vectScanPoints(360);
+        std::vector<::Point> vectScanPoints(360);
         for (int degree = 0; degree < 360; degree++)
         {
-            vectScanPoints[degree].x = scan->data[degree] * cos(headingDeg + degree);
-            vectScanPoints[degree].y = scan->data[degree] * sin(headingDeg + scan);
+            vectScanPoints[degree].x = scan->ranges[degree] * cos((degree+headingDeg) * M_PI/180);
+            vectScanPoints[degree].y = scan->ranges[degree] * sin((degree+headingDeg) * M_PI/180);
         }
-        for (auto& col : m_mapPoints)
+
+        for (double x = searchScope.xMin; x < searchScope.xMax; x+= m_lowResolution)
         {
-            for (auto& mapPoint : col)
+            for (double y = searchScope.yMin; y < searchScope.yMax; y+= m_lowResolution)
             {
-                
+                double score = AssessLowResPoint(x,y,vectScanPoints);
+                ScanMatchPoint* pPoint = this->LowResPoint(x,y);
+                if (pPoint)
+                {
+                    if (score > pPoint->probOfScan)
+                    {
+                        pPoint->probOfScan = score;
+                        pPoint->bestHeading = headingDeg;
+                        BestLowRes.RemovePoint(pPoint);
+                        BestLowRes.InsertNewPoint(pPoint);
+                    }
+                 //   std::cout << "LR   x: " << x << " ,y: " << y << ", heading: " << headingDeg << ", score: " << score << "\n";
+                }
             }
         }
-    }*/
-    return ScanMatchPoint();
+    }
+
+   // std::cout << "final list: \n";
+
+  //  for (auto& pLowResPoint : BestLowRes)
+  //  {
+  //      std::cout << "LR   x: " << pLowResPoint->x << " ,y: " << pLowResPoint->y << ", heading: " << pLowResPoint->bestHeading
+  //           << ", score: " << pLowResPoint->probOfScan << "\n";
+  //  }
+
+
+    //Assess best point in best Low-res area. Keep doing so until results stop getting better
+    ScanMatchPoint* pBestPoint = nullptr;
+    double bestHeadingDeg = -1;
+    double bestScore = -1;
+
+    for (int headingDeg = searchScope.headingMin;
+        headingDeg < searchScope.headingMax;
+        headingDeg++)
+    {
+        int correctedDegree = headingDeg%360;
+        //compute points as if around 0,0
+        std::vector<::Point> vectScanPoints(360);
+        for (int degree = 0; degree < 360; degree++)
+        {
+            vectScanPoints[degree].x = scan->ranges[degree] * cos((degree + headingDeg)*M_PI/180);
+            vectScanPoints[degree].y = scan->ranges[degree] * sin((degree + headingDeg)*M_PI/180);
+        }
+
+        for (auto& pLowResPoint : BestLowRes)
+        {
+            if (pLowResPoint->probOfScan < bestScore)
+            {
+                continue;
+            }
+            //int initCol;
+            //int initRow;
+            ScanMatchPoint* pStartPoint = Point(pLowResPoint->x - m_lowResolution/2,
+                                              pLowResPoint->y - m_lowResolution/2);
+                                        
+            for (double x = pLowResPoint->x-m_lowResolution/2;
+                         x < pLowResPoint->x + m_lowResolution/2;
+                         x+=m_resolution)
+            {
+                //if (col >= m_mapPoints.size())
+                //{
+                //    break;
+                //}
+                for (double y = pLowResPoint->y - m_lowResolution/2;
+                         y < pLowResPoint->y + m_lowResolution/2;
+                         y+=m_resolution)
+                {
+                    //if (row >= m_mapPoints[col].size())
+                    //{
+                    //    break;
+                    //}
+                    ScanMatchPoint* pPoint = this->Point(x,y);
+                    double score = AssessPoint(pPoint->x, pPoint->y,vectScanPoints);
+                    if (score >= bestScore)
+                    {
+                        bestScore = score;
+                        bestHeadingDeg = correctedDegree;
+                        pBestPoint = pPoint;
+                        std::cout << "Improved Choice:HR   x: " << pBestPoint->x << " ,y: " << pBestPoint->y << ", heading: " << bestHeadingDeg
+             << ", score: " << bestScore << "\n";
+                    }
+                }
+            }
+
+        }
+    }
+
+    for (auto& col : m_lowResMapPoints)
+    {
+        for (auto& point : col)
+        {
+            point.probOfScan = -1;
+        }
+    }
+
+
+std::cout << "Final Choice:\nHR   x: " << pBestPoint->x << " ,y: " << pBestPoint->y << ", heading: " << bestHeadingDeg
+             << ", score: " << bestScore << "\n";
+    pBestPoint->bestHeading = bestHeadingDeg * M_PI/180;
+    return *pBestPoint;
 }
 
+void CScanMatchMap::ExpandToIncludePoint(double x, double y)
+{
+    //expand in the x direction
+    if (x < this->m_xMin)
+   {
+        double minX = m_mapPoints.front()[0].x;
+        for (double curX = minX + m_resolution; curX > x - m_lowResolution; curX -= m_resolution)
+        {
+            //add new column
+            m_mapPoints.insert(m_mapPoints.begin(),std::vector<ScanMatchPoint>(m_mapPoints[0].size()));
+            double curY = m_mapPoints.back()[0].y;
+            for (auto& point : m_mapPoints.front())
+            {
+                point.x = curX;
+                point.y = curY;
+                curY += m_resolution;
+            }
+            m_xMin = curX;
+        }
+        //add the low resolution squares
+        minX = m_lowResMapPoints.front()[0].x;
+        for (double curX = minX - m_lowResolution; curX > m_xMin; curX -= m_lowResolution)
+        {
+            //add new column
+            m_lowResMapPoints.insert(m_lowResMapPoints.begin(),std::vector<ScanMatchPoint>(m_lowResMapPoints[0].size()));
+            double curY = m_lowResMapPoints.back()[0].y;
+            for (auto& point : m_lowResMapPoints.front())
+            {
+                point.x = curX;
+                point.y = curY;
+                curY += m_lowResolution;
+                //TODO: may need to fill in prob values,
+                // I am assuming this is not needed
+
+            }
+        }
+    }
+    else if (x > m_mapPoints.back()[0].x)
+    {
+        double maxX = m_mapPoints.back()[0].x;
+        for (double curX = maxX + m_resolution; curX < x + m_lowResolution; curX += m_resolution)
+        {
+            //add new column
+            m_mapPoints.push_back(std::vector<ScanMatchPoint>(m_mapPoints[0].size()));
+            double curY = m_mapPoints.front()[0].y;
+            for (auto& point : m_mapPoints.back())
+            {
+                point.x = curX;
+                point.y = curY;
+                curY += m_resolution;
+            }
+            m_width = curX - m_xMin;
+        }
+        //add the low resolution squares
+        maxX = m_lowResMapPoints.back()[0].x;
+        for (double curX = maxX - m_lowResolution; curX < m_xMin + m_width; curX += m_lowResolution)
+        {
+            //add new column
+            m_lowResMapPoints.push_back(std::vector<ScanMatchPoint>(m_lowResMapPoints[0].size()));
+            double curY = m_lowResMapPoints.front()[0].y;
+            for (auto& point : m_lowResMapPoints.back())
+            {
+                point.x = curX;
+                point.y = curY;
+                curY += m_lowResolution;
+                //TODO: may need to fill in prob values,
+                // I am assuming this is not needed
+
+            }
+        }
+
+    }
+
+    //expand in the y direction
+    if (y < m_yMin)
+    {
+        double minY = m_mapPoints[0].front().y;
+        for (auto& vectCol : m_mapPoints)
+        {
+            double curX = vectCol.front().x;
+            for (double curY = minY - m_resolution; curY > y - m_lowResolution; curY-= m_resolution)
+            {
+                vectCol.insert(vectCol.begin(),ScanMatchPoint());
+                vectCol.front().y = curY;
+                vectCol.front().x = curX;
+                if (curY < m_yMin)
+                {
+                    m_yMin = curY;
+                }
+            }
+        }
+
+        //add low-res points;
+        minY = m_lowResMapPoints[0].front().y;
+        for (auto& vectCol : m_lowResMapPoints)
+        {
+            double curX = vectCol.front().x;
+            for (double curY = minY - m_lowResolution; curY > m_yMin; curY-= m_lowResolution)
+            {
+                vectCol.insert(vectCol.begin(),ScanMatchPoint());
+                vectCol.back().y = curY;
+                vectCol.back().x = curX;
+            }
+        }
+    }
+    else if (y > m_mapPoints[0].back().y)
+    {
+        double maxY = m_mapPoints[0].back().y;
+        for (auto& vectCol : m_mapPoints)
+        {
+            double curX = vectCol.back().x;
+            for (double curY = maxY + m_resolution; curY < y + m_lowResolution; curY+= m_resolution)
+            {
+                vectCol.push_back(ScanMatchPoint());
+                vectCol.back().y = curY;
+                vectCol.back().x = curX;
+                if (curY > m_yMin + m_height)
+                {
+                    m_height = curY - m_yMin;
+                }
+            }
+        }
+
+        //add low-res points;
+        maxY = m_lowResMapPoints[0].back().y;
+        for (auto& vectCol : m_lowResMapPoints)
+        {
+            double curX = vectCol.back().x;
+            for (double curY = maxY + m_lowResolution; curY < m_yMin + m_height; curY+= m_lowResolution)
+            {
+                vectCol.push_back(ScanMatchPoint());
+                vectCol.back().y = curY;
+                vectCol.back().x = curX;
+            }
+        }
+    }
+
+    m_xMin = m_mapPoints[0][0].x;
+    m_yMin = m_mapPoints[0][0].y;
+    m_width = m_mapPoints.back().back().x - m_xMin;
+    m_height = m_mapPoints.back().back().y - m_yMin;
+
+}

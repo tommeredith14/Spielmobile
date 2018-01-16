@@ -46,14 +46,18 @@ public:
     : prob(P_MISS),
       x(0),
       y(0),
-      probOfScan(-1)
+      probOfScan(-1),
+      bObserved(false),
+      observedInIter(-1),
+      bestHeading(-1)
     {}
-    float prob;
+    double prob;
     float x;
     float y;
-    float probOfScan;
+    double probOfScan;
     bool bObserved;
     long observedInIter;
+    double bestHeading;
 };
 
 class CParticle;
@@ -73,10 +77,14 @@ public:
     std::vector<double> AssessParticleSet(sensor_msgs::LaserScan::ConstPtr& scan, 
                                 std::vector<CParticle>* pParticleVector);
     double AssessPoint(double x, double y, const std::vector<::Point>& vectScanPoints);
+    double AssessLowResPoint(double x, double y, const std::vector<::Point>& vectScanPoints);
 
 private:
     void GenerateLowResMap();
     void GaussianAboutPoint(double x, double y);
+    void SmallGaussianAboutPoint(double x, double y);
+    void ExpandToIncludePoint(double x, double y);
+
     //TODO : assess point given vector of scan points 
     typedef std::vector<ScanMatchPoint> Column;
 
