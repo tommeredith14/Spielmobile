@@ -742,31 +742,35 @@ void CScanMatchMap::InsertScan(sensor_msgs::LaserScan::ConstPtr& scan,
     }
 
     //update the low-rez map as needed
-    int colNum = 0;
+    //int colNum = 0;
     for (auto& row : m_lowResMapPoints)
     {
-        int rowNum = 0;
+        //int rowNum = 0;
         for (auto& lowResPoint : row)
         {
             if (lowResPoint.observedInIter == m_scanIter)
             {
-                for (int i = colNum*10; i < (colNum+1)*10; i++)
+                /*for (int i = colNum*10; i < (colNum+1)*10; i++)
                 {
                     if (i >= m_mapPoints.size()) continue;
-                    for (int j = rowNum*10; j < (rowNum+1)*10; j++)
+                    for (int j = rowNum*10; j < (rowNum+1)*10; j++)*/
+                for (double x = lowResPoint.x- m_lowResolution/2; x < lowResPoint.x + m_lowResolution/2; x+= m_resolution)
+                {
+                    for (double y = lowResPoint.y - m_lowResolution/2; y < lowResPoint.y + m_lowResolution/2; y+= m_resolution)
                     {   
-                        if (j >= m_mapPoints[i].size()) continue;
+                        ScanMatchPoint* pPoint = Point(x,y);
+                        //if (j >= m_mapPoints[i].size()) continue;
 
-                        if (m_mapPoints[i][j].prob > lowResPoint.prob)
+                        if (/*m_mapPoints[i][j].*/pPoint->prob > lowResPoint.prob)
                         {
-                            lowResPoint.prob = m_mapPoints[i][j].prob;
+                            lowResPoint.prob = /*m_mapPoints[i][j].*/pPoint->prob;
                         }
                     }
                 }
             }
-            rowNum++;
+            //rowNum++;
         }
-        colNum++;
+        //colNum++;
     }
     m_scanIter++;
 }
@@ -848,20 +852,34 @@ private:
 ScanMatchPoint CScanMatchMap::AssessScan(sensor_msgs::LaserScan::ConstPtr& scan,
                                          const SearchScope& searchScope)
 {
+    //for (auto& vectCol : m_lowResMapPoints)
+    //{
+    //    for (auto& point : vectCol)
+    //    {
+    //        std::cout << "Lowres point: x: " << point.x << ", y: " << point.y << "\n";
+    //    }
+    //}
     //Assess Low-res search window, maintain list of top spots (20?)
     BestLowResList BestLowRes(20);
-
+std::cout << std::fixed;
     for (int headingDeg = searchScope.headingMin;
          headingDeg < searchScope.headingMax;
          headingDeg+=5)
     {
         int correctedDegree = headingDeg%360;
         //compute points as if around 0,0
-        std::vector<::Point> vectScanPoints(360);
+        std::vector<::Point> vectScanPoints;
+        vectScanPoints.reserve(360);
         for (int degree = 0; degree < 360; degree++)
         {
-            vectScanPoints[degree].x = scan->ranges[degree] * cos((degree+headingDeg) * M_PI/180);
-            vectScanPoints[degree].y = scan->ranges[degree] * sin((degree+headingDeg) * M_PI/180);
+            if (scan->ranges[degree] == std::numeric_limits<float>::infinity())
+            {
+                continue; //TODO
+            }
+            ::Point newPoint;
+            newPoint.x = scan->ranges[degree] * cos((degree + headingDeg)*M_PI/180);
+            newPoint.y = scan->ranges[degree] * sin((degree + headingDeg)*M_PI/180);
+            vectScanPoints.push_back(newPoint);
         }
 
         for (double x = searchScope.xMin; x < searchScope.xMax; x+= m_lowResolution)
@@ -879,19 +897,19 @@ ScanMatchPoint CScanMatchMap::AssessScan(sensor_msgs::LaserScan::ConstPtr& scan,
                         BestLowRes.RemovePoint(pPoint);
                         BestLowRes.InsertNewPoint(pPoint);
                     }
-                 //   std::cout << "LR   x: " << x << " ,y: " << y << ", heading: " << headingDeg << ", score: " << score << "\n";
+                    //std::cout << "LR   x: " << x <<"checkx"<<pPoint->x << " ,y: " << y << ", heading: " << headingDeg << ", score: " << score << "\n";
                 }
             }
         }
     }
 
-   // std::cout << "final list: \n";
+    //std::cout << "final list: \n";
 
-  //  for (auto& pLowResPoint : BestLowRes)
-  //  {
-  //      std::cout << "LR   x: " << pLowResPoint->x << " ,y: " << pLowResPoint->y << ", heading: " << pLowResPoint->bestHeading
-  //           << ", score: " << pLowResPoint->probOfScan << "\n";
-  //  }
+    //for (auto& pLowResPoint : BestLowRes)
+    //{
+    //    std::cout << "LR   x: " << pLowResPoint->x << " ,y: " << pLowResPoint->y << ", heading: " << pLowResPoint->bestHeading
+    //         << ", score: " << pLowResPoint->probOfScan << "address: " << pLowResPoint<< "\n";
+    //}
 
 
     //Assess best point in best Low-res area. Keep doing so until results stop getting better
@@ -905,11 +923,18 @@ ScanMatchPoint CScanMatchMap::AssessScan(sensor_msgs::LaserScan::ConstPtr& scan,
     {
         int correctedDegree = headingDeg%360;
         //compute points as if around 0,0
-        std::vector<::Point> vectScanPoints(360);
+        std::vector<::Point> vectScanPoints;
+        vectScanPoints.reserve(360);
         for (int degree = 0; degree < 360; degree++)
         {
-            vectScanPoints[degree].x = scan->ranges[degree] * cos((degree + headingDeg)*M_PI/180);
-            vectScanPoints[degree].y = scan->ranges[degree] * sin((degree + headingDeg)*M_PI/180);
+            if (scan->ranges[degree] == std::numeric_limits<float>::infinity())
+            {
+                continue; //TODO
+            }
+            ::Point newPoint;
+            newPoint.x = scan->ranges[degree] * cos((degree + headingDeg)*M_PI/180);
+            newPoint.y = scan->ranges[degree] * sin((degree + headingDeg)*M_PI/180);
+            vectScanPoints.push_back(newPoint);
         }
 
         for (auto& pLowResPoint : BestLowRes)
@@ -923,7 +948,7 @@ ScanMatchPoint CScanMatchMap::AssessScan(sensor_msgs::LaserScan::ConstPtr& scan,
             ScanMatchPoint* pStartPoint = Point(pLowResPoint->x - m_lowResolution/2,
                                               pLowResPoint->y - m_lowResolution/2);
                                         
-            for (double x = pLowResPoint->x-m_lowResolution/2;
+            for (double x = pLowResPoint->x - m_lowResolution/2;
                          x < pLowResPoint->x + m_lowResolution/2;
                          x+=m_resolution)
             {
@@ -941,13 +966,13 @@ ScanMatchPoint CScanMatchMap::AssessScan(sensor_msgs::LaserScan::ConstPtr& scan,
                     //}
                     ScanMatchPoint* pPoint = this->Point(x,y);
                     double score = AssessPoint(pPoint->x, pPoint->y,vectScanPoints);
-                    if (score >= bestScore)
+                    if (score > bestScore)
                     {
                         bestScore = score;
                         bestHeadingDeg = correctedDegree;
                         pBestPoint = pPoint;
-                        std::cout << "Improved Choice:HR   x: " << pBestPoint->x << " ,y: " << pBestPoint->y << ", heading: " << bestHeadingDeg
-             << ", score: " << bestScore << "\n";
+            //            std::cout << "Improved Choice:HR   x: " << pBestPoint->x << "checkx: " << x << " ,y: " << pBestPoint->y << "checky: " << y <<", heading: " << bestHeadingDeg
+           //  << ", score: " << bestScore << "\n";
                     }
                 }
             }
@@ -976,7 +1001,7 @@ void CScanMatchMap::ExpandToIncludePoint(double x, double y)
     if (x < this->m_xMin)
    {
         double minX = m_mapPoints.front()[0].x;
-        for (double curX = minX + m_resolution; curX > x - m_lowResolution; curX -= m_resolution)
+        for (double curX = minX - m_resolution; curX > x - m_lowResolution; curX -= m_resolution)
         {
             //add new column
             m_mapPoints.insert(m_mapPoints.begin(),std::vector<ScanMatchPoint>(m_mapPoints[0].size()));
@@ -1070,8 +1095,8 @@ void CScanMatchMap::ExpandToIncludePoint(double x, double y)
             for (double curY = minY - m_lowResolution; curY > m_yMin; curY-= m_lowResolution)
             {
                 vectCol.insert(vectCol.begin(),ScanMatchPoint());
-                vectCol.back().y = curY;
-                vectCol.back().x = curX;
+                vectCol.front().y = curY;
+                vectCol.front().x = curX;
             }
         }
     }

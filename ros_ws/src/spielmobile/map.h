@@ -52,8 +52,8 @@ public:
       bestHeading(-1)
     {}
     double prob;
-    float x;
-    float y;
+    double x;
+    double y;
     double probOfScan;
     bool bObserved;
     long observedInIter;

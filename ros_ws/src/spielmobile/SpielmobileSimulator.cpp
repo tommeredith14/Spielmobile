@@ -88,10 +88,10 @@ public:
 				{
 					scan.ranges[deg] = std::numeric_limits<float>::infinity();
 				}
-				//if (m_randNumGen(m_noiseGenerator) < PROB_SCAN_MISS)
-				//{
-				//	scan.ranges[deg] = std::numeric_limits<float>::infinity();
-				//}
+				if (m_randNumGen(m_noiseGenerator) < PROB_SCAN_MISS)
+				{
+					scan.ranges[deg] = std::numeric_limits<float>::infinity();
+				}
 				//else if (m_randNumGen(m_noiseGenerator) < PROB_SCAN_RAND)
 				//{
 				//	scan.ranges[deg] = m_randNumGen(m_noiseGenerator) * 8.0;

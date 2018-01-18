@@ -57,6 +57,44 @@ void generate_motion_update(geometry_msgs::Twist & msg, int right, int left) {
 
 }
 
+int rightPower = 0;
+int leftPower = 0;
+
+
+double vMax = 1.0;
+double wMax = 1.0;
+void MotionCommandCallback(const geometry_msgs::Twist::ConstPtr& cmdVelMsg)
+{
+    double rightSpeed = 0;
+    double leftSpeed = 0;
+
+    rightSpeed = cmdVelMsg->angular.z/wMax;
+    leftSpeed = -cmdVelMsg->angular.z/wMax;
+
+    rightSpeed += cmdVelMsg->linear.x/vMax;
+    leftSpeed += cmdVelMsg->linear.x/vMax;
+
+    rightPower = round(rightSpeed);
+    leftPower = round(leftSpeed);
+
+    if (rightPower > 100)
+    {
+        rightPower = 100;
+    }
+    if (rightPower < -100)
+    {
+        rightPower = -100;
+    }
+    if (leftPower > 100)
+    {
+        leftPower = 100;
+    }
+    if (leftPower < -100)
+    {
+        leftPower = -100;
+    }
+}
+
 int main(int argc, char **argv) {
     //Init ros
     ros::init(argc,argv, "ARM_comms");
@@ -64,20 +102,22 @@ int main(int argc, char **argv) {
 
     //Create publisher, set message type
     ros::Publisher pub = nh.advertise<geometry_msgs::Twist>("spielmobile/motion_updates", 100);
-
+    ros::Subscriber sub = nh.subscribe<geometry_msgs::Twist>("/cmd_vel", 1, MotionCommandCallback);
     //Init i2c
     int fd, result;
     char *filename = (char*)"/dev/i2c-1";
     file_i2c = open(filename, O_RDWR);
     if (file_i2c < 0)
+    {
         cout << "Init failed\n";
+    }
 
 
 
-    ros::Rate rate(1);
+    ros::Rate rate(10);
 
     while(ros::ok()) {
-
+        ros::spinOnce();
         geometry_msgs::Twist msg;
 
         //set up for I2C transmission to slave (not sure if this has to be done each time)
@@ -91,7 +131,7 @@ int main(int argc, char **argv) {
         //Get motor speeds to send
         //TODO: receive this from other nodes
 
-        int16_t input;
+        /*int16_t input;
         cout << "Left wheel: ";
         cin >> input;
         to_send[0]= (uint8_t)input;
@@ -101,7 +141,9 @@ int main(int argc, char **argv) {
 
         cout << "Right wheel: ";
         cin >> input;
-        to_send[1]= (uint8_t)input;
+        to_send[1]= (uint8_t)input;*/
+        to_send[0] = (uint8_t)leftPower;
+        to_send[1] = (uint8_t)rightPower;
 
         cout << "sending: " << (int)to_send[0] << ", " << (int)to_send[1] << endl;
 
@@ -140,14 +182,17 @@ int main(int argc, char **argv) {
         left_dist |= ((to_read[1] & 0x7F) << 7);
         left_dist |= ((to_read[2] & 0x7F) << 0);
         if ((to_read[0] & 0x20) != 0)
+        {
             left_dist *= -1;
+        }
 
         right_dist |= ((to_read[3] & 0x0F) << 10);
         right_dist |= ((to_read[4] & 0x7F) << 7);
         right_dist |= ((to_read[5] & 0x7F) << 0);
         if ((to_read[3] & 0x20) != 0)
+        {
             right_dist *= -1;
-
+        }
 
         cout << "Left wheel went  " << left_dist << endl;
         cout << "Right wheel went " << right_dist << endl;
