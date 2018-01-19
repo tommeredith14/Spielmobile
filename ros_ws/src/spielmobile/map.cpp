@@ -598,10 +598,37 @@ void CScanMatchMap::SmallGaussianAboutPoint(double x, double y)
 
         }
 }
+double median3(double a, double b, double c)
+{
+    if (a > b)
+    {
+        if (b > c)
+        {
+            return b;
+        }
+        else if (a < c)
+        {
+            return a;
+        }
+    }
+    else
+    {
+        if (a > c)
+        {
+            return a;
+        }
+        else if (b < c)
+        {
+            return b;
+        }
+    }
+    return c;
+}
 
 void CScanMatchMap::InsertScan(sensor_msgs::LaserScan::ConstPtr& scan, 
             geometry_msgs::Twist& pos)
 {
+
     std::vector<ScanMatchPoint*> vectHits(0);
     std::vector<ScanMatchPoint*> vectMisses(0);
     // for each ray
@@ -609,11 +636,16 @@ void CScanMatchMap::InsertScan(sensor_msgs::LaserScan::ConstPtr& scan,
     {
         // insert the endpoint as a hit. If its new, spread it as a gaussian, else
         // just do the calculation
-        if (scan->ranges[deg] != std::numeric_limits<float>::infinity())
+        double cur = scan->ranges[deg];
+        double prev = scan->ranges[(deg-1)%360];
+        double next = scan->ranges[(deg+1)%360];
+
+        double distance = median3(cur, prev, next);
+        if (distance != std::numeric_limits<float>::infinity())
         {
             
-            double endx = pos.linear.x + scan->ranges[deg]* cos((deg)*M_PI/180 + pos.angular.z);
-            double endy = pos.linear.y + scan->ranges[deg]* sin((deg)*M_PI/180 + pos.angular.z);
+            double endx = pos.linear.x + distance* cos((deg)*M_PI/180 + pos.angular.z);
+            double endy = pos.linear.y + distance* sin((deg)*M_PI/180 + pos.angular.z);
 
             ScanMatchPoint* pHitPoint = this->Point(endx, endy, nullptr, nullptr);
             if (!pHitPoint->bObserved /*|| pHitPoint->observedInIter < m_scanIter*/)
@@ -645,14 +677,10 @@ void CScanMatchMap::InsertScan(sensor_msgs::LaserScan::ConstPtr& scan,
         // based on http://www.idav.ucdavis.edu/education/GraphicsNotes/Bresenhams-Algorithm.pdf page 9
         double dx = cos(deg*M_PI/180 + pos.angular.z);//(endx - pos.linear.x)/scan->ranges[deg];
         double dy = sin(deg*M_PI/180 + pos.angular.z);//(endy - pos.linear.y)/scan->ranges[deg];
-        double dist;
-        if (scan->ranges[deg] != std::numeric_limits<float>::infinity())
+        //double dist;
+        if (distance == std::numeric_limits<float>::infinity())
         {
-            dist = scan->ranges[deg];
-        }
-        else
-        {
-            dist = 8;
+            distance = 8;
         }
         if (fabs(dx) > fabs(dy))
         {
@@ -660,7 +688,7 @@ void CScanMatchMap::InsertScan(sensor_msgs::LaserScan::ConstPtr& scan,
             double slope = dy/dx;
             double err = slope - 1;
             double y = pos.linear.y;
-            double endx = pos.linear.x + dist*dx;
+            double endx = pos.linear.x + distance*dx;
             int direction = (dx > 0)?1:-1;
             double yStep = m_resolution*slope*direction;
             for (double x = pos.linear.x; (direction == 1 && x < endx - 0.1) ||
@@ -701,7 +729,7 @@ void CScanMatchMap::InsertScan(sensor_msgs::LaserScan::ConstPtr& scan,
             double slope = dx/dy;
             double err = slope - 1;
             double x = pos.linear.x;
-            double endy = pos.linear.y + dy*dist;
+            double endy = pos.linear.y + dy*distance;
             int direction = (dy > 0)?1:-1;
             double xStep = m_resolution*slope*direction;
             for (double y = pos.linear.y; 
