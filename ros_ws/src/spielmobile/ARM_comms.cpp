@@ -142,9 +142,23 @@ int main(int argc, char **argv) {
         cout << "Right wheel: ";
         cin >> input;
         to_send[1]= (uint8_t)input;*/
-        to_send[0] = (uint8_t)leftPower;
-        to_send[1] = (uint8_t)rightPower;
+        if (leftPower >= 0)
+        {
+            to_send[0] = (uint8_t)leftPower;
+        }
+        else
+        {
+            to_send[0] = (uint8_t)(-leftPower) & 0x80;
+        }
 
+        if (rightPower >= 0)
+        {
+            to_send[1] = (uint8_t)rightPower;
+        }
+        else
+        {
+            to_send[1] = (uint8_t)(-rightPower) & 0x80;
+        }
         cout << "sending: " << (int)to_send[0] << ", " << (int)to_send[1] << endl;
 
 
@@ -168,8 +182,8 @@ int main(int argc, char **argv) {
         for (int i = 0; i < 6; i++)
             cout << (uint16_t)to_read[i] << endl;
 
-        cin.clear();
-        cin.ignore(99999, '\n');
+        //cin.clear();
+       // cin.ignore(99999, '\n');
 
         //Decipher the values
         // 00SF_XXXX XXXX_XXXX XXXX_XXXX
